@@ -1,0 +1,7 @@
+#board {
+    margin: 1%;
+    border: 1px solid grey;
+    background: #DDD url("/img/dot-grid.png");
+    position: relative;
+    z-index: 0;
+}
