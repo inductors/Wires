@@ -5,3 +5,16 @@
     position: relative;
     z-index: 0;
 }
+
+.tool {
+    padding: 5px;
+    border-radius: 5px;
+    border: solid 1px #555;
+    background-color: #DDD;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+.tool.active {
+    background-color: #BBD;
+}
