@@ -1,15 +1,20 @@
 function getCursorPosition(e, target) {
-    var x;
-    var y;
-    if (e.pageX != undefined && e.pageY != undefined) {
-        x = e.pageX;
-        y = e.pageY;
+    var x, y;
+    if (e.offsetX != undefined && e.offsetY != undefined) {
+        // Chrome
+        x = e.offsetX;
+        y = e.offsetY;
+    } else if (e.pageX != undefined && e.pageY != undefined) {
+        // Firefox
+        x = e.pageX - $(target).position().left;
+        x -= parseInt($(target).css('margin-left'));
+        y = e.pageY - $(target).position().top;
+        y -= parseInt($(target).css('margin-top'));
     } else {
+        // ...idk?
         x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
         y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     }
-    x -= target.position().left;
-    y -= target.position().top;
 
     return {'x': x, 'y': y};
 }
@@ -68,6 +73,7 @@ function Board() {
                 board.drag = 1;
             }
         }
+        console.log(e.real_x + ' ' + e.real_y);
         board.cur_tool.mousedown(e, board.drag_target);
     });
 
