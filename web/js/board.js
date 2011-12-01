@@ -19,6 +19,7 @@ function getCursorPosition(e, target) {
     return {'x': x, 'y': y};
 }
 
+/* Main */
 $(function() {
     var b = new Board();
 
@@ -84,6 +85,11 @@ function Board() {
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
+        for (var i=0; i<board.drawers.length; i++) {
+            var d = board.drawers[i];
+            d.hover = d.hit_test(e.real_x, e.real_y);
+        }
+
         if (board.drag == 0) {
             board.cur_tool.mousemove(e);
         }
@@ -144,6 +150,7 @@ function Board() {
 function Node(board, x, y) {
     this.type = "node";
     this.board = board;
+    this.notes = [];
     this.x = x;
     this.y = y;
     this.r = 5;
@@ -175,6 +182,14 @@ function Node(board, x, y) {
             ctx.stroke();
         }
 
+        ctx.fillStyle = "rgba(0,0,0,0.7)"
+        var text_x = this.x + 10;
+        var text_y = this.y + 10;
+        for (var i=0; i<this.notes.length; i++) {
+            ctx.fillText(key + ': ' + this.notes[i], text_x, text_y);
+            text_y += 12;
+        }
+
         ctx.restore();
     }
 
@@ -198,6 +213,7 @@ function Line(board, n1, n2) {
     this.board = board;
     this.n1 = n1;
     this.n2 = n2;
+    this.notes = [];
 
     board.drawers.push(this);
 
@@ -210,6 +226,26 @@ function Line(board, n1, n2) {
         ctx.moveTo(this.n1.x, this.n1.y);
         ctx.lineTo(this.n2.x, this.n2.y);
         ctx.stroke();
+
+        var text_x = (this.n1.x + this.n2.x) / 2;
+        var text_y = (this.n1.y + this.n2.y) / 2;
+        if (this.n1.x == this.n2.x) {
+            var slope = NaN;
+        } else {
+            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x)
+        }
+
+        if (slope > 0) {
+            var per_line = -14;
+        } else {
+            var per_line = 14;
+        }
+        text_x += Math.abs(per_line / 2);
+        text_y += per_line / 2;
+        for (var i=0; i<this.notes.length; i++) {
+            ctx.fillText(this.notes[i], text_x, text_y);
+            text_y += per_line;
+        }
 
         ctx.restore();
     }
@@ -329,7 +365,7 @@ function NodeTool(board) {
     // `this` is overwritten in jquery callbacks, so save it here.
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_arrow">Nodes</div>')
+    this.elem = $('<div class="tool" id="tool_node">Nodes</div>')
         .appendTo('#tools')
         .bind('click', function() {
             node_tool.board.set_tool(node_tool);
@@ -360,18 +396,16 @@ function LineTool(board) {
     this.temp_end_node = null
     this.temp_line = null;
 
-    this.elem = $('<div class="tool" id="tool_arrow">Lines</div>')
+    // Set the kind of line to make, so sub classes can overwrite it.
+    this.line_kind = Line;
+
+    this.elem = $('<div class="tool" id="tool_line">Lines</div>')
         .appendTo('#tools')
         .bind('click', function() {
             node_tool.board.set_tool(node_tool);
         });
 
-    this.mousedown = function(e, target) {
-        if (target && target.type == "node") {
-            this.temp_end_node = {'x': e.real_x, 'y': e.real_y};
-            this.temp_line = new Line(this.board, target, this.temp_end_node);
-        }
-    };
+    this.mousedown = function(e, target) {};
     this.mouseup = function() {}
     this.click = function(e) {}
     this.mousemove = function(e) {}
@@ -383,7 +417,7 @@ function LineTool(board) {
         }
         if (target && target.type == "node") {
             this.temp_end_node = {'x': e.real_x, 'y': e.real_y};
-            this.temp_line = new Line(this.board, target, this.temp_end_node);
+            this.temp_line = new this.line_kind(this.board, target, this.temp_end_node);
         }
     }
     this.drag = function(e, target) {
@@ -397,8 +431,10 @@ function LineTool(board) {
         for (var i=0; i<this.board.drawers.length; i++) {
             var it = this.board.drawers[i];
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
-                this.temp_line.n2 = it;
-                hit = true;
+                if (it != this.temp_line.n1) {
+                    this.temp_line.n2 = it;
+                    hit = true;
+                }
                 break;
             }
         }
