@@ -32,7 +32,8 @@ $(function() {
 
 function Board() {
     this.type = "board";
-    this.drawers = [];
+    this.nodes = [];
+    this.wires = [];
 
     this.drag = 0;
     this.drag_target = null;
@@ -46,12 +47,15 @@ function Board() {
 
     board.redraw = function() {
         board.ctx.clearRect(0, 0, board.canvas.width, board.canvas.height);
-        for (var i=0; i<board.drawers.length; i++) {
-            board.drawers[i].draw(board.ctx);
+        for (var i=0; i<board.wires.length; i++) {
+            board.wires[i].draw(board.ctx);
+        };
+	for (var i=0; i<board.nodes.length; i++) {
+            board.nodes[i].draw(board.ctx);
         };
     }
-    // Redraw 20 times a second.
-    setInterval(this.redraw, 50);
+    // Redraw 50 times a second.
+    setInterval(this.redraw, 20);
 
     this.set_tool = function(tool) {
         if (this.cur_tool) {
@@ -68,9 +72,15 @@ function Board() {
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
-        for (var i=0; i<board.drawers.length; i++) {
-            if (board.drawers[i].hit_test(e.real_x, e.real_y)) {
-                board.drag_target = board.drawers[i];
+        for (var i=0; i<board.wires.length; i++) {
+            if (board.wires[i].hit_test(e.real_x, e.real_y)) {
+                board.drag_target = board.wires[i];
+                board.drag = 1;
+            }
+        }
+	for (var i=0; i<board.nodes.length; i++) {
+            if (board.nodes[i].hit_test(e.real_x, e.real_y)) {
+                board.drag_target = board.nodes[i];
                 board.drag = 1;
             }
         }
@@ -85,11 +95,15 @@ function Board() {
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
-        for (var i=0; i<board.drawers.length; i++) {
-            var d = board.drawers[i];
+        for (var i=0; i<board.wires.length; i++) {
+            var d = board.wires[i];
             d.hover = d.hit_test(e.real_x, e.real_y);
         }
-
+	for (var i=0; i<board.nodes.length; i++) {
+            var d = board.nodes[i];
+            d.hover = d.hit_test(e.real_x, e.real_y);
+        }
+	
         if (board.drag == 0) {
             board.cur_tool.mousemove(e);
         }
@@ -157,7 +171,7 @@ function Node(board, x, y) {
     this.selected = false;
     this.hover = false;
 
-    board.drawers.push(this);
+    board.nodes.push(this);
 
     this.draw = function() {
         var ctx = board.ctx;
@@ -215,7 +229,7 @@ function Line(board, n1, n2) {
     this.n2 = n2;
     this.notes = [];
 
-    board.drawers.push(this);
+    board.wires.push(this);
 
     this.draw = function() {
         var ctx = board.ctx;
@@ -255,9 +269,9 @@ function Line(board, n1, n2) {
     }
 
     this.remove = function() {
-        var idx = this.board.drawers.indexOf(this);
+        var idx = this.board.wires.indexOf(this);
         if (idx != -1) {
-            this.board.drawers.splice(idx, 1); // remove if found
+            this.board.wires.splice(idx, 1); // remove if found
         }
         return null;
     }
@@ -283,9 +297,14 @@ function ArrowTool(board) {
     this.mousemove = function(){};
     this.click = function(e, target) {
         var selected_objs = []
-        for (var i=0; i<board.drawers.length; i++) {
-            if (board.drawers[i].selected) {
-                selected_objs.push(board.drawers[i]);
+        for (var i=0; i<board.nodes.length; i++) {
+            if (board.nodes[i].selected) {
+                selected_objs.push(board.nodes[i]);
+            }
+        }
+	for (var i=0; i<board.wires.length; i++) {
+            if (board.wires[i].selected) {
+                selected_objs.push(board.wires[i]);
             }
         }
         if (target) {
@@ -313,8 +332,11 @@ function ArrowTool(board) {
             // If we clicked on a non-selected element, unselect everything and
             // select it.
             if (!target.selected) {
-                for (var i=0; i<this.board.drawers.length; i++) {
-                    this.board.drawers[i].selected = false;
+                for (var i=0; i<this.board.nodes.length; i++) {
+                    this.board.nodes[i].selected = false;
+                }
+		for (var i=0; i<this.board.wires.length; i++) {
+                    this.board.wires[i].selected = false;
                 }
                 target.selected = true;
             }
@@ -322,8 +344,15 @@ function ArrowTool(board) {
             // Make snapping cool.
             if (this.board.snap) {
                 var p = this.board.snap_to(target.x, target.y);
-                for (var i=0; i<this.board.drawers.length; i++) {
-                    var it = this.board.drawers[i];
+                for (var i=0; i<this.board.nodes.length; i++) {
+                    var it = this.board.nodes[i];
+                    if (it.selected) {
+                        it.x += p.x - target.x;
+                        it.y += p.y - target.y;
+                    }
+                }
+		for (var i=0; i<this.board.wires.length; i++) {
+                    var it = this.board.wires[i];
                     if (it.selected) {
                         it.x += p.x - target.x;
                         it.y += p.y - target.y;
@@ -344,10 +373,16 @@ function ArrowTool(board) {
                 dy -= dy % board.snap_size;
             }
 
-            for (var i=0; i<board.drawers.length; i++) {
-                if (this.board.drawers[i].selected) {
-                    this.board.drawers[i].x += dx;
-                    this.board.drawers[i].y += dy;
+            for (var i=0; i<board.nodes.length; i++) {
+                if (this.board.nodes[i].selected) {
+                    this.board.nodes[i].x += dx;
+                    this.board.nodes[i].y += dy;
+                }
+            }
+	    for (var i=0; i<board.wires.length; i++) {
+                if (this.board.wires[i].selected) {
+                    this.board.wires[i].x += dx;
+                    this.board.wires[i].y += dy;
                 }
             }
 
@@ -428,8 +463,8 @@ function LineTool(board) {
     };
     this.dragend = function(e) {
         var hit = false;
-        for (var i=0; i<this.board.drawers.length; i++) {
-            var it = this.board.drawers[i];
+        for (var i=0; i<this.board.nodes.length; i++) {
+            var it = this.board.nodes[i];
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
                 if (it != this.temp_line.n1) {
                     this.temp_line.n2 = it;
