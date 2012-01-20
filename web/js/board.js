@@ -26,7 +26,9 @@ $(function() {
     var a = new ArrowTool(b);
     var n = new NodeTool(b);
     var n = new LineTool(b);
-
+    var s = new Serializer(b);
+    var d = new Deserializer(b);
+	
     b.set_tool(a);
 });
 
@@ -48,10 +50,10 @@ function Board() {
     board.redraw = function() {
         board.ctx.clearRect(0, 0, board.canvas.width, board.canvas.height);
         for (var i=0; i<board.wires.length; i++) {
-            board.wires[i].draw(board.ctx);
+            board.wires[i].draw();
         };
 	for (var i=0; i<board.nodes.length; i++) {
-            board.nodes[i].draw(board.ctx);
+            board.nodes[i].draw();
         };
     }
     // Redraw 50 times a second.
@@ -158,6 +160,28 @@ function Board() {
         }
 
         return {'x': x, 'y': y};
+    }
+    
+    this.serialize = function() {
+	var keys = ["nodes", "wires", "x", "y", "n1", "n2", "notes"]
+	var text = JSON.stringify(board, keys);
+	document.getElementById("frm1").elements[0].value = text;
+    }
+    
+    this.deserialize = function() {
+	var text = document.getElementById("frm1").elements[0].value;
+	var boardData = JSON.parse(text);
+	board.nodes = [];
+	 for (var i=0; i<boardData.nodes.length; i++) {
+		board.nodes[i] = new Node(board, boardData.nodes[i].x, boardData.nodes[i].y);
+		board.nodes[i].notes = boardData.nodes[i].notes;
+	 }
+	board.wires = [];
+	for (var i=0; i<boardData.wires.length; i++) {
+		board.wires[i] = new Line(board, boardData.wires[i].n1, boardData.wires[i].n2);
+		board.wires[i].notes = boardData.wires[i].notes;
+	}
+	document.getElementById("frm1").reset();
     }
 }
 
@@ -480,3 +504,36 @@ function LineTool(board) {
         this.temp_end_node = null;
     }
 }
+
+function Serializer(board) {
+    this.type = "serializer";
+    this.board = board;
+
+    // `this` is overwritten in jquery callbacks, so save it here.
+    var node_tool = this;
+
+    this.elem = $('<div class="tool" id="tool_line">Save</div>')
+        .appendTo('#serial')
+        .bind('click', function() {
+            node_tool.board.serialize();
+        });
+
+}
+
+function Deserializer(board) {
+    this.type = "deserializer";
+    this.board = board;
+
+    // `this` is overwritten in jquery callbacks, so save it here.
+    var node_tool = this;
+
+    this.elem = $('<div class="tool" id="tool_line">Load</div>')
+        .appendTo('#serial')
+        .bind('click', function() {
+            node_tool.board.deserialize();
+        });
+
+}
+
+
+
