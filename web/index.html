@@ -6,6 +6,7 @@
       google.load("jqueryui", "1.8.16", {uncompressed:true});
     </script>
     <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+    <script type="text/javascript" src="/~jonestyl/js/json2.js"></script>
     <script type="text/javascript" src="/js/board.js"></script>
 
     <link rel="stylesheet" type="text/css" href="/css/board.css" />
@@ -13,5 +14,10 @@
   <body>
     <div id="tools"></div>
     <canvas id="board" width="800" height="600"></canvas>
+    <br />
+    Serialization:<br />
+    <div id="serial"></div>
+    <form id="frm1" >
+    <input type="text" name="fname1" />
   </body>
 </html>
