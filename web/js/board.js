@@ -52,7 +52,7 @@ function Board() {
         for (var i=0; i<board.wires.length; i++) {
             board.wires[i].draw();
         };
-	for (var i=0; i<board.nodes.length; i++) {
+        for (var i=0; i<board.nodes.length; i++) {
             board.nodes[i].draw();
         };
     }
@@ -80,7 +80,7 @@ function Board() {
                 board.drag = 1;
             }
         }
-	for (var i=0; i<board.nodes.length; i++) {
+        for (var i=0; i<board.nodes.length; i++) {
             if (board.nodes[i].hit_test(e.real_x, e.real_y)) {
                 board.drag_target = board.nodes[i];
                 board.drag = 1;
@@ -101,7 +101,7 @@ function Board() {
             var d = board.wires[i];
             d.hover = d.hit_test(e.real_x, e.real_y);
         }
-	for (var i=0; i<board.nodes.length; i++) {
+        for (var i=0; i<board.nodes.length; i++) {
             var d = board.nodes[i];
             d.hover = d.hit_test(e.real_x, e.real_y);
         }
@@ -163,25 +163,25 @@ function Board() {
     }
 
     this.serialize = function() {
-	var keys = ["nodes", "wires", "x", "y", "n1", "n2", "notes"]
-	var text = JSON.stringify(board, keys);
-	document.getElementById("frm1").elements[0].value = text;
+        var keys = ["nodes", "wires", "x", "y", "n1", "n2", "notes"]
+            var text = JSON.stringify(board, keys);
+        document.getElementById("frm1").elements[0].value = text;
     }
 
     this.deserialize = function() {
-	var text = document.getElementById("frm1").elements[0].value;
-	var boardData = JSON.parse(text);
-	board.nodes = [];
-	 for (var i=0; i<boardData.nodes.length; i++) {
-		board.nodes[i] = new Node(board, boardData.nodes[i].x, boardData.nodes[i].y);
-		board.nodes[i].notes = boardData.nodes[i].notes;
-	 }
-	board.wires = [];
-	for (var i=0; i<boardData.wires.length; i++) {
-		board.wires[i] = new Line(board, boardData.wires[i].n1, boardData.wires[i].n2);
-		board.wires[i].notes = boardData.wires[i].notes;
-	}
-	document.getElementById("frm1").reset();
+        var text = document.getElementById("frm1").elements[0].value;
+        var boardData = JSON.parse(text);
+        board.nodes = [];
+        for (var i=0; i<boardData.nodes.length; i++) {
+            board.nodes[i] = new Node(board, boardData.nodes[i].x, boardData.nodes[i].y);
+            board.nodes[i].notes = boardData.nodes[i].notes;
+        }
+        board.wires = [];
+        for (var i=0; i<boardData.wires.length; i++) {
+            board.wires[i] = new Line(board, boardData.wires[i].n1, boardData.wires[i].n2);
+            board.wires[i].notes = boardData.wires[i].notes;
+        }
+        document.getElementById("frm1").reset();
     }
 }
 
@@ -206,6 +206,7 @@ function Node(board, x, y) {
         ctx.strokeStyle = 'rgb(0,0,0)';
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+        ctx.closePath();
 
         if (this.hover) {
             ctx.fillStyle = 'rgb(196, 196, 196)';
@@ -219,11 +220,12 @@ function Node(board, x, y) {
         if (this.selected) {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.r + 3, 0, Math.PI*2, true);
+            ctx.closePath();
             ctx.stroke();
         }
 
         ctx.fillStyle = "rgba(0,0,0,0.7)"
-        var text_x = this.x + 10;
+            var text_x = this.x + 10;
         var text_y = this.y + 10;
         for (var i=0; i<this.notes.length; i++) {
             ctx.fillText(key + ': ' + this.notes[i], text_x, text_y);
@@ -286,8 +288,10 @@ function Line(board, n1, n2) {
         }
         ctx.strokeWeight = 2;
 
+        ctx.beginPath();
         ctx.moveTo(this.n1.x, this.n1.y);
         ctx.lineTo(this.n2.x, this.n2.y);
+        ctx.closePath();
         ctx.stroke();
 
         var text_x = (this.n1.x + this.n2.x) / 2;
@@ -360,7 +364,7 @@ function ArrowTool(board) {
                 selected_objs.push(board.nodes[i]);
             }
         }
-	for (var i=0; i<board.wires.length; i++) {
+        for (var i=0; i<board.wires.length; i++) {
             if (board.wires[i].selected) {
                 selected_objs.push(board.wires[i]);
             }
@@ -393,7 +397,7 @@ function ArrowTool(board) {
                 for (var i=0; i<this.board.nodes.length; i++) {
                     this.board.nodes[i].selected = false;
                 }
-		for (var i=0; i<this.board.wires.length; i++) {
+                for (var i=0; i<this.board.wires.length; i++) {
                     this.board.wires[i].selected = false;
                 }
                 target.selected = true;
@@ -409,7 +413,7 @@ function ArrowTool(board) {
                         it.y += p.y - target.y;
                     }
                 }
-		for (var i=0; i<this.board.wires.length; i++) {
+                for (var i=0; i<this.board.wires.length; i++) {
                     var it = this.board.wires[i];
                     if (it.selected) {
                         it.x += p.x - target.x;
@@ -437,10 +441,18 @@ function ArrowTool(board) {
                     this.board.nodes[i].y += dy;
                 }
             }
-	    for (var i=0; i<board.wires.length; i++) {
+            for (var i=0; i<board.wires.length; i++) {
                 if (this.board.wires[i].selected) {
-                    this.board.wires[i].x += dx;
-                    this.board.wires[i].y += dy;
+                    var n1 = this.board.wires[i].n1;
+                    var n2 = this.board.wires[i].n2;
+                    if (!n1.selected) {
+                        n1.x += dx;
+                        n1.y += dy;
+                    }
+                    if (!n2.selected) {
+                        n2.x += dx;
+                        n2.y += dy;
+                    }
                 }
             }
 
@@ -487,7 +499,7 @@ function LineTool(board) {
     var node_tool = this;
 
     this.temp_end_node = null
-    this.temp_line = null;
+        this.temp_line = null;
 
     // Set the kind of line to make, so sub classes can overwrite it.
     this.line_kind = Line;
