@@ -28,7 +28,7 @@ $(function() {
     var n = new LineTool(b);
     var s = new Serializer(b);
     var d = new Deserializer(b);
-	
+
     b.set_tool(a);
 });
 
@@ -105,7 +105,7 @@ function Board() {
             var d = board.nodes[i];
             d.hover = d.hit_test(e.real_x, e.real_y);
         }
-	
+
         if (board.drag == 0) {
             board.cur_tool.mousemove(e);
         }
@@ -161,13 +161,13 @@ function Board() {
 
         return {'x': x, 'y': y};
     }
-    
+
     this.serialize = function() {
 	var keys = ["nodes", "wires", "x", "y", "n1", "n2", "notes"]
 	var text = JSON.stringify(board, keys);
 	document.getElementById("frm1").elements[0].value = text;
     }
-    
+
     this.deserialize = function() {
 	var text = document.getElementById("frm1").elements[0].value;
 	var boardData = JSON.parse(text);
@@ -258,7 +258,11 @@ function Line(board, n1, n2) {
     this.draw = function() {
         var ctx = board.ctx;
         ctx.save();
-        ctx.strokeStyle = 'rgb(0,0,0)';
+        if (this.selected) {
+            ctx.strokeStyle = 'rgb(255,0,0)';
+        } else {
+            ctx.strokeStyle = 'rgb(0,0,0)';
+        }
         ctx.strokeWeight = 2;
 
         ctx.moveTo(this.n1.x, this.n1.y);
@@ -288,8 +292,17 @@ function Line(board, n1, n2) {
         ctx.restore();
     }
 
-    this.hit_test = function() {
-        return false;
+    this.hit_test = function(x, y) {
+        // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
+        var lx = this.n2.x - this.n1.x;
+        var ly = this.n2.y - this.n1.y;
+
+        var rx = this.n1.x - x;
+        var ry = this.n1.y - y;
+
+        var distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
+
+        return distance < 5;
     }
 
     this.remove = function() {
