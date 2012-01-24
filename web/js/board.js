@@ -263,7 +263,7 @@ function Node(board, x, y) {
 
 	this.element_count = function() {
 		return this.elements1.length + this.elements2.length;
-	}
+	} 
 }
 
 function Line(board, n1, n2) {
@@ -272,7 +272,6 @@ function Line(board, n1, n2) {
     this.n1 = n1;
 	this.n1.elements1.push(this);
     this.n2 = n2;
-	this.n2.elements2.push(this);
 
     this.notes = [];
 
@@ -537,6 +536,7 @@ function LineTool(board) {
             var it = this.board.nodes[i];
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
                 if (it != this.temp_line.n1) {
+					it.elements2.push(this.temp_line);
                     this.temp_line.n2 = it;
                     hit = true;
                 }
