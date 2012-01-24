@@ -281,7 +281,7 @@ function Node(board, x, y) {
 
 	this.element_count = function() {
 		return this.elements1.length + this.elements2.length;
-	} 
+	}
 }
 
 function Line(board, n1, n2) {
@@ -356,6 +356,115 @@ function Line(board, n1, n2) {
     }
 }
 
+function Resistor(board, n1, n2, resistance) {
+    this.type = "resistor";
+    this.board = board;
+    this.n1 = n1;
+	this.n1.elements1.push(this);
+    this.n2 = n2;
+
+    this.resistance = resistance
+
+    board.wires.push(this);
+
+    this.draw = function() {
+        var ctx = board.ctx;
+        ctx.save();
+        if (this.selected) {
+            ctx.strokeStyle = 'rgb(255,0,0)';
+        } else {
+            ctx.strokeStyle = 'rgb(0,0,0)';
+        }
+        ctx.strokeWeight = 2;
+
+        var mid = {
+            x: (this.n1.x + this.n2.x) / 2,
+            y: (this.n1.y + this.n2.y) / 2,
+        };
+        var l = {
+            x: this.n1.x - this.n2.x,
+            y: this.n1.y - this.n2.y,
+        }
+        var r1 = {
+            x: mid.x + (l.x * 0.1),
+            y: mid.y + (l.y * 0.1),
+        };
+        var r2 = {
+            x: mid.x - (l.x * 0.1),
+            y: mid.y - (l.y * 0.1),
+        };
+        var squiggle_count = 10;
+        var squiggle_height = 5;
+        // Delta r - the distance to travel per squiggle
+        var dr = {
+            x: (r2.x - r1.x) * (1.0 / squiggle_count),
+            y: (r2.y - r1.y) * (1.0 / squiggle_count)
+        };
+        dr.d = Math.sqrt((dr.x * dr.x) + (dr.y * dr.y))
+        // Normal r - the vector from the line to the peak of a postive squiggle
+        var nr = {
+            x: (r2.y - r1.y) * 0.1,
+            y: (r1.x - r2.x) * 0.1
+        };
+
+        ctx.beginPath();
+        ctx.moveTo(this.n1.x, this.n1.y);
+        ctx.lineTo(r1.x, r1.y);
+        var sign = 1;
+        for (var d=0; d<10; d++) {
+            var sx = r1.x + (dr.x * (d + 0.5)) + (nr.x * sign);
+            var sy = r1.y + (dr.y * (d + 0.5)) + (nr.y * sign);
+            ctx.lineTo(sx, sy);
+            sign *= -1;
+        }
+        ctx.lineTo(r2.x, r2.y);
+        ctx.lineTo(this.n2.x, this.n2.y);
+        ctx.stroke();
+
+        var text_x = (this.n1.x + this.n2.x) / 2;
+        var text_y = (this.n1.y + this.n2.y) / 2;
+        if (this.n1.x == this.n2.x) {
+            var slope = NaN;
+        } else {
+            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x)
+        }
+
+        if (slope > 0) {
+            var per_line = -14;
+        } else {
+            var per_line = 14;
+        }
+        text_x += Math.abs(per_line / 2);
+        text_y += per_line / 2;
+        /*for (var i=0; i<this.notes.length; i++) {
+            ctx.fillText(this.notes[i], text_x, text_y);
+            text_y += per_line;
+        }*/
+
+        ctx.restore();
+    }
+
+    this.hit_test = function(x, y) {
+        // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
+        var lx = this.n2.x - this.n1.x;
+        var ly = this.n2.y - this.n1.y;
+
+        var rx = this.n1.x - x;
+        var ry = this.n1.y - y;
+
+        var distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
+
+        return distance < 5;
+    }
+    this.remove = function() {
+        var idx = this.board.wires.indexOf(this);
+        if (idx != -1) {
+            this.board.wires.splice(idx, 1); // remove if found
+        }
+        return null;
+    }
+}
+
 function ArrowTool(board) {
     this.type = "arrow-tool";
     this.board = board;
@@ -375,7 +484,7 @@ function ArrowTool(board) {
     this.mouseup = function(){};
     this.mousemove = function(){};
     this.click = function(e, target) {
-        var selected_objs = []
+        var selected_objs = [];
         for (var i=0; i<board.nodes.length; i++) {
             if (board.nodes[i].selected) {
                 selected_objs.push(board.nodes[i]);
@@ -513,18 +622,18 @@ function LineTool(board) {
     this.board = board;
 
     // `this` is overwritten in jquery callbacks, so save it here.
-    var node_tool = this;
+    var line_tool = this;
 
     this.temp_end_node = null
-        this.temp_line = null;
+    this.temp_line = null;
 
     // Set the kind of line to make, so sub classes can overwrite it.
-    this.line_kind = Line;
+    this.line_kind = Resistor;
 
     this.elem = $('<div class="tool" id="tool_line">Lines</div>')
         .appendTo('#tools')
         .bind('click', function() {
-            node_tool.board.set_tool(node_tool);
+            line_tool.board.set_tool(line_tool);
         });
 
     this.mousedown = function(e, target) {};
@@ -554,7 +663,6 @@ function LineTool(board) {
             var it = this.board.nodes[i];
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
                 if (it != this.temp_line.n1) {
-					it.elements2.push(this.temp_line);
                     this.temp_line.n2 = it;
                     hit = true;
                 }
