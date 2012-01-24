@@ -192,6 +192,8 @@ function Node(board, x, y) {
     this.x = x;
     this.y = y;
     this.r = 5;
+	this.elements1 = [];
+	this.elements2 = [];
     this.selected = false;
     this.hover = false;
 
@@ -244,13 +246,32 @@ function Node(board, x, y) {
         var d_sq = Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2);
         return d_sq < Math.pow(fuzzy_r, 2);
     }
+
+	this.connected = function(node) {
+		var i;
+		for (i=0; i<this.elements1.length; i++) {
+			if (this.elements1[i].type == 'line') {
+				
+			}
+		}
+		for (i=0; i<this.elements2.length; i++) {
+			
+		}
+	}
+
+	this.element_count = function() {
+		return this.elements1.length + this.elements2.length;
+	}
 }
 
 function Line(board, n1, n2) {
     this.type = "line";
     this.board = board;
     this.n1 = n1;
+	this.n1.elements1.push(this);
     this.n2 = n2;
+	this.n2.elements2.push(this);
+
     this.notes = [];
 
     board.wires.push(this);
