@@ -512,7 +512,7 @@ function Serializer(board) {
     // `this` is overwritten in jquery callbacks, so save it here.
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_line">Save</div>')
+    this.elem = $('<div class="tool" id="tool_save">Save</div>')
         .appendTo('#serial')
         .bind('click', function() {
             node_tool.board.serialize();
@@ -527,7 +527,7 @@ function Deserializer(board) {
     // `this` is overwritten in jquery callbacks, so save it here.
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_line">Load</div>')
+    this.elem = $('<div class="tool" id="tool_load">Load</div>')
         .appendTo('#serial')
         .bind('click', function() {
             node_tool.board.deserialize();
