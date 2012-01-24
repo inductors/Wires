@@ -255,25 +255,25 @@ function Node(board, x, y) {
 		var cleared_nodes = [];
 		var uncleared_nodes = [this];
 		while (uncleared_nodes.length > 0) {
-			n1 = uncleared_nodes.pop()
-			if (n1 === node {
+			n1 = uncleared_nodes.pop();
+			if (n1 === node) {
 				return true;
 			}
 			cleared_nodes.push(n1);
 			for (i=0; i<n1.elements1.length; i++) {
 				if (n1.elements1[i].type == 'line') {
 					n2 = n1.elements1[i].n2;
-					if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
+					/* if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
 						uncleared_nodes.push(n2);
-					}
+					} */
 				}
 			}
 			for (i=0; i<this.elements2.length; i++) {
 				if (n1.elements2[i].type == 'line') {
 					n2 = n1.elements2[i].n1;
-					if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
+					/* if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
 						uncleared_nodes.push(n2);
-					}
+					} */
 				}
 			}
 		}
