@@ -185,8 +185,8 @@ function Board() {
         }
         board.wires = [];
         for (var i=0; i<boardData.wires.length; i++) {
-	    if (boardData.wires[i].type == "line") board.wires[i] = new Line(board, boardData.nodes[boardData.wires[i].n1_id], boardData.nodes[boardData.wires[i].n2_id]);
-	    if (boardData.wires[i].type == "resistor") board.wires[i] = new Resistor(board, boardData.nodes[boardData.wires[i].n1_id], boardData.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
+	    if (boardData.wires[i].type == "line") board.wires[i] = new Line(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id]);
+	    if (boardData.wires[i].type == "resistor") board.wires[i] = new Resistor(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
             board.wires[i].notes = boardData.wires[i].notes;
         }
         document.getElementById("frm1").reset();
