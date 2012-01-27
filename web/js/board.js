@@ -163,8 +163,15 @@ function Board() {
     }
 
     this.serialize = function() {
-        var keys = ["nodes", "wires", "x", "y", "n1", "n2", "notes"]
-            var text = JSON.stringify(board, keys);
+	for (var i=0; i<board.nodes.length; i++) {
+	    board.nodes[i].id = i;
+	}
+	for (var i=0; i<board.wires.length; i++) {
+	    board.wires[i].n1_id = board.wires[i].n1.id;
+	    board.wires[i].n2_id = board.wires[i].n2.id;
+	}
+        var keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
+	var text = JSON.stringify(board, keys);
         document.getElementById("frm1").elements[0].value = text;
     }
 
@@ -178,7 +185,8 @@ function Board() {
         }
         board.wires = [];
         for (var i=0; i<boardData.wires.length; i++) {
-            board.wires[i] = new Line(board, boardData.wires[i].n1, boardData.wires[i].n2);
+	    if (boardData.wires[i].type == "line") board.wires[i] = new Line(board, boardData.nodes[boardData.wires[i].n1_id], boardData.nodes[boardData.wires[i].n2_id]);
+	    if (boardData.wires[i].type == "resistor") board.wires[i] = new Resistor(board, boardData.nodes[boardData.wires[i].n1_id], boardData.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
             board.wires[i].notes = boardData.wires[i].notes;
         }
         document.getElementById("frm1").reset();
@@ -192,8 +200,8 @@ function Node(board, x, y) {
     this.x = x;
     this.y = y;
     this.r = 5;
-	this.elements1 = [];
-	this.elements2 = [];
+    this.elements1 = [];
+    this.elements2 = [];
     this.selected = false;
     this.hover = false;
 
@@ -261,7 +269,7 @@ function Node(board, x, y) {
 			}
 			cleared_nodes.push(n1);
 			for (i=0; i<n1.elements1.length; i++) {
-				if (n1.elements1[i].type == 'line') {
+				if (n1.elements1[i].type == "line") {
 					n2 = n1.elements1[i].n2;
 					/* if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
 						uncleared_nodes.push(n2);
@@ -269,7 +277,7 @@ function Node(board, x, y) {
 				}
 			}
 			for (i=0; i<this.elements2.length; i++) {
-				if (n1.elements2[i].type == 'line') {
+				if (n1.elements2[i].type == "line") {
 					n2 = n1.elements2[i].n1;
 					/* if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
 						uncleared_nodes.push(n2);
@@ -288,7 +296,7 @@ function Line(board, n1, n2) {
     this.type = "line";
     this.board = board;
     this.n1 = n1;
-	this.n1.elements1.push(this);
+    //n1.elements1.push(this);
     this.n2 = n2;
 
     this.notes = [];
@@ -316,7 +324,7 @@ function Line(board, n1, n2) {
         if (this.n1.x == this.n2.x) {
             var slope = NaN;
         } else {
-            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x)
+            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x);
         }
 
         if (slope > 0) {
@@ -360,10 +368,10 @@ function Resistor(board, n1, n2, resistance) {
     this.type = "resistor";
     this.board = board;
     this.n1 = n1;
-	this.n1.elements1.push(this);
+    //n1.elements1.push(this);
     this.n2 = n2;
 
-    this.resistance = resistance
+    this.resistance = resistance;
 
     board.wires.push(this);
 
@@ -400,7 +408,7 @@ function Resistor(board, n1, n2, resistance) {
             x: (r2.x - r1.x) * (1.0 / squiggle_count),
             y: (r2.y - r1.y) * (1.0 / squiggle_count)
         };
-        dr.d = Math.sqrt((dr.x * dr.x) + (dr.y * dr.y))
+        dr.d = Math.sqrt((dr.x * dr.x) + (dr.y * dr.y));
         // Normal r - the vector from the line to the peak of a postive squiggle
         var nr = {
             x: (r2.y - r1.y) * 0.1,
@@ -426,7 +434,7 @@ function Resistor(board, n1, n2, resistance) {
         if (this.n1.x == this.n2.x) {
             var slope = NaN;
         } else {
-            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x)
+            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x);
         }
 
         if (slope > 0) {
@@ -624,7 +632,7 @@ function LineTool(board) {
     // `this` is overwritten in jquery callbacks, so save it here.
     var line_tool = this;
 
-    this.temp_end_node = null
+    this.temp_end_node = null;
     this.temp_line = null;
 
     // Set the kind of line to make, so sub classes can overwrite it.
