@@ -363,6 +363,62 @@ function Node(board, x, y) {
 	this.element_count = function() {
 		return this.elements1.length + this.elements2.length;
 	}
+
+    this.connected_elements = function() {
+		var i, j;
+		var flag;
+		var n1, n2;
+        var e = [];
+		var cleared_nodes = [];
+		var uncleared_nodes = [this];
+		while (uncleared_nodes.length > 0) {
+			n1 = uncleared_nodes.pop();
+			cleared_nodes.push(n1);
+			for (i=0; i<n1.elements1.length; i++) {
+				if (n1.elements1[i].type == "line") {
+					n2 = n1.elements1[i].n2;
+					flag = false;
+					for (j=0; (j<cleared_nodes.length && ! flag); j++) {
+						if (n2 === cleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					for (j=0; (j<uncleared_nodes.length && ! flag); j++) {
+						if (n2 === uncleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					if (! flag) {
+						uncleared_nodes.push(n2);
+					}
+				} else if (n1.elements1[i].type == "resistor") {
+                    e.push(n1.elements1[i]);
+                }
+			}
+			for (i=0; i<this.elements2.length; i++) {
+				if (n1.elements2[i].type == "line") {
+					n2 = n1.elements2[i].n1;
+					flag = false;
+					for (j=0; (j<cleared_nodes.length && ! flag); j++) {
+						if (n2 === cleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					for (j=0; (j<uncleared_nodes.length && ! flag); j++) {
+						if (n2 === uncleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					if (! flag) {
+						uncleared_nodes.push(n2);
+					}
+				} else if (n1.elements2[i].type == "resistor") {
+                    e.push(n1.elements2[i]);
+                }
+			}
+		}
+		return e;
+    }
 }
 
 function Line(board, n1, n2) {
