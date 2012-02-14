@@ -56,8 +56,54 @@ function Board() {
             board.nodes[i].draw();
         };
     }
-    // Redraw 50 times a second.
-    setInterval(this.redraw, 20);
+
+    this.ui = function() {
+        var selected = [];
+        var kinds = 0;
+        for (var i=0; i<board.wires.length; i++) {
+            var w = board.wires[i];
+            if (w.selected) {
+                selected.push(w);
+                kinds |= 1;
+            }
+        }
+        for (var i=0; i<board.nodes.length; i++) {
+            var n = board.nodes[i];
+            if (n.selected) {
+                selected.push(n);
+                kinds |= 2;
+            }
+        }
+        output = '';
+        if (selected.length > 0) {
+            if (selected.length == 1) {
+                output += ('<p>' + selected.length + " item selected.</p>");
+            } else {
+                output += ('<p>' + selected.length + " items selected.</p>");
+            }
+
+            if (kinds == 1) {
+                // All wires
+                output += '<ul>'
+                for (var i=0; i<selected.length; i++) {
+                    output += '<li>Resistance: ' + selected[i].resistance + '</li>';
+                }
+                output += '</ul>'
+            } else if (kinds == 2) {
+                // All nodes
+            } else {
+                // Mixed
+            }
+        } else {
+            output += '<p>None</p>';
+        }
+        $('#selectedinfo').html(output);
+    }
+
+    // Redraw about 30 times a second, once every 33ms.
+    setInterval(this.redraw, 33);
+    // Update major UI 5 times a second, every 200ms.
+    setInterval(this.ui, 200);
 
     this.set_tool = function(tool) {
         if (this.cur_tool) {
@@ -86,7 +132,6 @@ function Board() {
                 board.drag = 1;
             }
         }
-        console.log(e.real_x + ' ' + e.real_y);
         board.cur_tool.mousedown(e, board.drag_target);
     });
 
@@ -163,15 +208,15 @@ function Board() {
     }
 
     this.serialize = function() {
-	for (var i=0; i<board.nodes.length; i++) {
-	    board.nodes[i].id = i;
-	}
-	for (var i=0; i<board.wires.length; i++) {
-	    board.wires[i].n1_id = board.wires[i].n1.id;
-	    board.wires[i].n2_id = board.wires[i].n2.id;
-	}
+        for (var i=0; i<board.nodes.length; i++) {
+            board.nodes[i].id = i;
+        }
+        for (var i=0; i<board.wires.length; i++) {
+            board.wires[i].n1_id = board.wires[i].n1.id;
+            board.wires[i].n2_id = board.wires[i].n2.id;
+        }
         var keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
-	var text = JSON.stringify(board, keys);
+        var text = JSON.stringify(board, keys);
         document.getElementById("frm1").elements[0].value = text;
     }
 
@@ -185,8 +230,12 @@ function Board() {
         }
         board.wires = [];
         for (var i=0; i<boardData.wires.length; i++) {
-	    if (boardData.wires[i].type == "line") board.wires[i] = new Line(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id]);
-	    if (boardData.wires[i].type == "resistor") board.wires[i] = new Resistor(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
+            if (boardData.wires[i].type == "line") {
+                board.wires[i] = new Line(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id]);
+            }
+            if (boardData.wires[i].type == "resistor") {
+                board.wires[i] = new Resistor(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
+            }
             board.wires[i].notes = boardData.wires[i].notes;
         }
         document.getElementById("frm1").reset();
@@ -323,7 +372,7 @@ function Line(board, n1, n2) {
     //n1.elements1.push(this);
     this.n2 = n2;
 
-    this.notes = [];
+    this.notes = {'resistance': 1};
 
     board.wires.push(this);
 
@@ -358,8 +407,8 @@ function Line(board, n1, n2) {
         }
         text_x += Math.abs(per_line / 2);
         text_y += per_line / 2;
-        for (var i=0; i<this.notes.length; i++) {
-            ctx.fillText(this.notes[i], text_x, text_y);
+        for (var key in this.notes) {
+            ctx.fillText(this.notes[key], text_x, text_y);
             text_y += per_line;
         }
 
@@ -680,7 +729,7 @@ function LineTool(board) {
         }
         if (target && target.type == "node") {
             this.temp_end_node = {'x': e.real_x, 'y': e.real_y};
-            this.temp_line = new this.line_kind(this.board, target, this.temp_end_node);
+            this.temp_line = new this.line_kind(this.board, target, this.temp_end_node, 1);
         }
     }
     this.drag = function(e, target) {

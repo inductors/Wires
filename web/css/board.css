@@ -1,9 +1,25 @@
+#ui {
+  width: 1000px;
+}
+
 #board {
-    margin: 1%;
     border: 1px solid grey;
     background: #DDD url("/img/dot-grid.png");
     position: relative;
     z-index: 0;
+    /* These are actually part of the html.
+    width: 800;
+    height: 600; */
+}
+
+#sidepanel {
+    float: right;
+    width: 180px;
+    height: 590px;
+    margin-left: 3px;
+    background-color: #BBB;
+    border: 1px solid grey;
+    padding: 5px;
 }
 
 .tool {
@@ -18,3 +34,5 @@
 .tool.active {
     background-color: #BBD;
 }
+
+h3 { margin: 0px; }

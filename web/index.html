@@ -12,12 +12,20 @@
     <link rel="stylesheet" type="text/css" href="/css/board.css" />
   </head>
   <body>
-    <div id="tools"></div>
-    <canvas id="board" width="800" height="600"></canvas>
-    <br />
-    Serialization:<br />
-    <div id="serial"></div>
-    <form id="frm1" >
-    <input type="text" name="fname1" />
+    <div id="ui">
+      <div id="tools"></div>
+      <canvas id="board" width="800" height="600"></canvas>
+      <div id="sidepanel">
+        <h3>Selected</h3>
+        <div id="selectedinfo">
+          None
+        </div>
+      </div>
+      <br />
+      Serialization:<br />
+      <form id="serial" >
+        <input type="text" name="serialdata" />
+      </form>
+    </div>
   </body>
 </html>
