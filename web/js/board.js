@@ -258,7 +258,8 @@ function Node(board, x, y) {
     }
 
 	this.connected = function(node) {
-		var i;
+		var i, j;
+		var flag;
 		var n1, n2;
 		var cleared_nodes = [];
 		var uncleared_nodes = [this];
@@ -271,20 +272,43 @@ function Node(board, x, y) {
 			for (i=0; i<n1.elements1.length; i++) {
 				if (n1.elements1[i].type == "line") {
 					n2 = n1.elements1[i].n2;
-					/* if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
+					flag = false;
+					for (j=0; (j<cleared_nodes.length && ! flag); j++) {
+						if (n2 === cleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					for (j=0; (j<uncleared_nodes.length && ! flag); j++) {
+						if (n2 === uncleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					if (! flag) {
 						uncleared_nodes.push(n2);
-					} */
+					}
 				}
 			}
 			for (i=0; i<this.elements2.length; i++) {
 				if (n1.elements2[i].type == "line") {
 					n2 = n1.elements2[i].n1;
-					/* if (($.inArray(n2, cleared_nodes) == -1) and ($.inArray(n2, uncleared_nodes) == -1)) {
+					flag = false;
+					for (j=0; (j<cleared_nodes.length && ! flag); j++) {
+						if (n2 === cleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					for (j=0; (j<uncleared_nodes.length && ! flag); j++) {
+						if (n2 === uncleared_nodes[j]) {
+							flag = true;
+						}
+					}
+					if (! flag) {
 						uncleared_nodes.push(n2);
-					} */
+					}
 				}
 			}
 		}
+		return false;
 	}
 
 	this.element_count = function() {
