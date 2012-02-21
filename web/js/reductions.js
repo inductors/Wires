@@ -1,10 +1,13 @@
 function series_test (resistors) {
-    nodes;
-    connected;
-    uncleared;
-    r;
-    n;
-    flag;
+    var i, j;
+    var nodes;
+    var connected;
+    var uncleared;
+    var r;
+    for r in resistors
+        uncleared.push(r);
+    var n;
+    var flag;
 
     r = uncleared.pop;
     nodes = [r.n1, r.n2];
