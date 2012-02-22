@@ -6,14 +6,17 @@
       google.load("jqueryui", "1.8.16", {uncompressed:true});
     </script>
     <!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
-    <script type="text/javascript" src="/js/json2.js"></script>
+    <script type="text/javascript" src="/js/functions.js"></script>
     <script type="text/javascript" src="/js/board.js"></script>
+    <script type="text/javascript" src="/js/json2.js"></script>
 
     <link rel="stylesheet" type="text/css" href="/css/board.css" />
   </head>
   <body>
     <div id="ui">
-      <div id="tools"></div>
+      <div id="tools">
+        <input type="checkbox" id="snap">Snap</input>
+      </div>
       <canvas id="board" width="800" height="600"></canvas>
       <div id="sidepanel">
         <h3>Selected</h3>

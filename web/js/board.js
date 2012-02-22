@@ -1,24 +1,3 @@
-function getCursorPosition(e, target) {
-    var x, y;
-    if (e.offsetX != undefined && e.offsetY != undefined) {
-        // Chrome
-        x = e.offsetX;
-        y = e.offsetY;
-    } else if (e.pageX != undefined && e.pageY != undefined) {
-        // Firefox
-        x = e.pageX - $(target).position().left;
-        x -= parseInt($(target).css('margin-left'));
-        y = e.pageY - $(target).position().top;
-        y -= parseInt($(target).css('margin-top'));
-    } else {
-        // ...idk?
-        x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-        y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-    }
-
-    return {'x': x, 'y': y};
-}
-
 /* Main */
 $(function() {
     var b = new Board();
@@ -32,43 +11,71 @@ $(function() {
     b.set_tool(a);
 });
 
-function Board() {
-    this.type = "board";
-    this.nodes = [];
-    this.wires = [];
+/*    var MyClass = Class.extend({
+ *         init: function(self) {  // this is the constructor
+ *             self.thing = 5;
+ *         }
+ *         add_to: function(self, n) {
+ *             self.thing += n;
+ *         }
+ *    });
+ */
 
-    this.drag = 0;
-    this.drag_target = null;
+var Board = Class.extend({
+    type: "board",
 
-    this.canvas = document.getElementById('board');
-    this.ctx = this.canvas.getContext('2d');
+    init: function(self) {
+        self.nodes = [];
+        self.wires = [];
 
-    this.snap = false;
-    this.snap_size = 20;
-    var board = this;
+        self.drag = 0;
+        self.drag_target = null;
 
-    board.redraw = function() {
-        board.ctx.clearRect(0, 0, board.canvas.width, board.canvas.height);
-        for (var i=0; i<board.wires.length; i++) {
-            board.wires[i].draw();
-        };
-        for (var i=0; i<board.nodes.length; i++) {
-            board.nodes[i].draw();
-        };
-    }
+        self.canvas = document.getElementById('board');
+        self.ctx = self.canvas.getContext('2d');
 
-    this.ui = function() {
+        self.snap = false;
+        self.snap_size = 20;
+
+        //setInterval(self.redraw, 33);
+        //setInterval(self.ui, 200);
+
+        $('#board').bind('mousedown', self.mousedown);
+        $('#board').bind('mousemove', self.mousemove);
+        $('#board').bind('mouseup', self.mouseup);
+        $('#board').bind('mousedown', self.mousedown);
+
+        $('#snap').bind('change', function(e) {
+            self.snap = $(this).prop('checked');
+        });
+
+    },
+
+    redraw: function(self) {
+        return;
+        self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+        for (var i=0; i < self.wires.length; i++) {
+            self.wires[i].draw();
+        }
+        for (var i=0; i < self.nodes.length; i++) {
+            self.nodes[i].draw();
+        }
+    },
+
+    ui: function(self) {
+        return;
         var selected = [];
         var kinds = 0;
-        for (var i=0; i<board.wires.length; i++) {
-            var w = board.wires[i];
+
+        for (var i=0; i<self.wires.length; i++) {
+            var w = self.wires[i];
             if (w.selected) {
                 selected.push(w);
                 kinds |= 1;
             }
         }
-        for (var i=0; i<board.nodes.length; i++) {
-            var n = board.nodes[i];
+        for (var i=0; i<self.nodes.length; i++) {
+            var n = self.nodes[i];
             if (n.selected) {
                 selected.push(n);
                 kinds |= 2;
@@ -98,174 +105,192 @@ function Board() {
             output += '<p>None</p>';
         }
         $('#selectedinfo').html(output);
-    }
+    },
 
-    // Redraw about 30 times a second, once every 33ms.
-    setInterval(this.redraw, 33);
-    // Update major UI 5 times a second, every 200ms.
-    setInterval(this.ui, 200);
-
-    this.set_tool = function(tool) {
-        if (this.cur_tool) {
-            $(this.cur_tool.elem).removeClass('active');
+    set_tool: function(self, tool) {
+        if (self.cur_tool) {
+            $(self.cur_tool.elem).removeClass('active');
         }
-        this.cur_tool = tool;
-        $(this.cur_tool.elem).addClass('active');
-    }
+        self.cur_tool = tool;
+        $(self.cur_tool.elem).addClass('active');
+    },
 
-    $('#board').bind('mousedown', function(e) {
-        if (!board.cur_tool) {
+    mousedown: function(self, e) {
+        if (!self.cur_tool) {
             return;
         }
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
-        for (var i=0; i<board.wires.length; i++) {
-            if (board.wires[i].hit_test(e.real_x, e.real_y)) {
-                board.drag_target = board.wires[i];
-                board.drag = 1;
+        for (var i=0; i<self.wires.length; i++) {
+            if (self.wires[i].hit_test(e.real_x, e.real_y)) {
+                self.drag_target = self.wires[i];
+                self.drag = 1;
             }
         }
-        for (var i=0; i<board.nodes.length; i++) {
-            if (board.nodes[i].hit_test(e.real_x, e.real_y)) {
-                board.drag_target = board.nodes[i];
-                board.drag = 1;
+        for (var i=0; i<self.nodes.length; i++) {
+            if (self.nodes[i].hit_test(e.real_x, e.real_y)) {
+                self.drag_target = self.nodes[i];
+                self.drag = 1;
             }
         }
-        board.cur_tool.mousedown(e, board.drag_target);
-    });
+        self.cur_tool.mousedown(e, self.drag_target);
+    },
 
-    $('#board').bind('mousemove', function(e) {
-        if (!board.cur_tool) {
+    mousemove: function(self, e) {
+        if (!self.cur_tool) {
             return;
         }
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
-        for (var i=0; i<board.wires.length; i++) {
-            var d = board.wires[i];
+        for (var i=0; i<self.wires.length; i++) {
+            var d = self.wires[i];
             d.hover = d.hit_test(e.real_x, e.real_y);
         }
-        for (var i=0; i<board.nodes.length; i++) {
-            var d = board.nodes[i];
+        for (var i=0; i<self.nodes.length; i++) {
+            var d = self.nodes[i];
             d.hover = d.hit_test(e.real_x, e.real_y);
         }
 
-        if (board.drag == 0) {
-            board.cur_tool.mousemove(e);
+        if (self.drag == 0) {
+            self.cur_tool.mousemove(e);
         }
-        if (board.drag == 1) {
-            board.drag = 2;
-            board.cur_tool.dragstart(e, board.drag_target);
+        if (self.drag == 1) {
+            self.drag = 2;
+            self.cur_tool.dragstart(e, self.drag_target);
         }
-        if (board.drag == 2) {
-            board.cur_tool.drag(e, board.drag_target);
+        if (self.drag == 2) {
+            self.cur_tool.drag(e, self.drag_target);
         }
-    });
+    },
 
-    $('#board').bind('mouseup', function(e) {
-        if (!board.cur_tool) {
+    mouseup: function(self, e) {
+        if (!self.cur_tool) {
             return;
         }
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
-        if (board.drag >= 2) {
-            board.cur_tool.dragend(e, board.drag_target);
+        if (self.drag >= 2) {
+            self.cur_tool.dragend(e, self.drag_target);
         } else {
-            board.cur_tool.click(e, board.drag_target);
+            self.cur_tool.click(e, self.drag_target);
         }
-        board.cur_tool.mouseup(e, board.drag_target);
+        self.cur_tool.mouseup(e, self.drag_target);
 
-        board.drag = 0;
-        board.drag_target = null;
-    });
+        self.drag = 0;
+        self.drag_target = null;
+    },
 
-    $('<input type="checkbox"/>Snap</input>').appendTo('#tools')
-        .bind('change', function(e) {
-            board.snap = $(this).prop('checked');
-        });
-
-    this.snap_to = function(x, y) {
-        if (!this.snap) {
+    snap_to: function(self, x, y) {
+        if (!self.snap) {
             return {'x': x, 'y': y};
         }
-        var mx = x % this.snap_size;
-        var my = y % this.snap_size;
+        var mx = x % self.snap_size;
+        var my = y % self.snap_size;
 
-        if (mx < this.snap_size / 2) {
+        if (mx < self.snap_size / 2) {
             x -= mx;
         } else {
-            x += this.snap_size - mx;
+            x += self.snap_size - mx;
         }
-        if (my < this.snap_size / 2) {
+        if (my < self.snap_size / 2) {
             y -= my;
         } else {
-            y += this.snap_size - my;
+            y += self.snap_size - my;
         }
 
         return {'x': x, 'y': y};
-    }
+    },
 
-    this.serialize = function() {
-        for (var i=0; i<board.nodes.length; i++) {
-            board.nodes[i].id = i;
+    serialize: function(self) {
+        for (var i=0; i<self.nodes.length; i++) {
+            self.nodes[i].id = i;
         }
-        for (var i=0; i<board.wires.length; i++) {
-            board.wires[i].n1_id = board.wires[i].n1.id;
-            board.wires[i].n2_id = board.wires[i].n2.id;
+        for (var i=0; i<self.wires.length; i++) {
+            self.wires[i].n1_id = self.wires[i].n1.id;
+            self.wires[i].n2_id = self.wires[i].n2.id;
         }
         var keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
-        var text = JSON.stringify(board, keys);
+        var text = JSON.stringify(self, keys);
         document.getElementById("frm1").elements[0].value = text;
-    }
+    },
 
-    this.deserialize = function() {
+    deserialize: function(self) {
         var text = document.getElementById("frm1").elements[0].value;
         var boardData = JSON.parse(text);
-        board.nodes = [];
+        self.nodes = [];
+        var text = document.getElementById("frm1").elements[0].value;
+        var boardData = JSON.parse(text);
+        self.nodes = [];
         for (var i=0; i<boardData.nodes.length; i++) {
-            board.nodes[i] = new Node(board, boardData.nodes[i].x, boardData.nodes[i].y);
-            board.nodes[i].notes = boardData.nodes[i].notes;
+            self.nodes[i] = new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
+            self.nodes[i].notes = boardData.nodes[i].notes;
         }
-        board.wires = [];
+        self.wires = [];
         for (var i=0; i<boardData.wires.length; i++) {
             if (boardData.wires[i].type == "line") {
-                board.wires[i] = new Line(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id]);
+                self.wires[i] = new Line(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id]);
             }
             if (boardData.wires[i].type == "resistor") {
-                board.wires[i] = new Resistor(board, board.nodes[boardData.wires[i].n1_id], board.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
+                self.wires[i] = new Resistor(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
             }
-            board.wires[i].notes = boardData.wires[i].notes;
+            self.wires[i].notes = boardData.wires[i].notes;
+        }
+        document.getElementById("frm1").reset();
+        for (var i=0; i<boardData.nodes.length; i++) {
+            self.nodes[i] = new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
+            self.nodes[i].notes = boardData.nodes[i].notes;
+        }
+        self.wires = [];
+        for (var i=0; i<boardData.wires.length; i++) {
+            if (boardData.wires[i].type == "line") {
+                self.wires[i] = new Line(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id]);
+            }
+            if (boardData.wires[i].type == "resistor") {
+                self.wires[i] = new Resistor(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
+            }
+            self.wires[i].notes = boardData.wires[i].notes;
         }
         document.getElementById("frm1").reset();
     }
-}
+});
 
-function Node(board, x, y) {
-    this.type = "node";
-    this.board = board;
-    this.notes = [];
-    this.x = x;
-    this.y = y;
-    this.r = 5;
-    this.elements1 = [];
-    this.elements2 = [];
-    this.selected = false;
-    this.hover = false;
+var ScreenObject = Class.extend({
+    type: "screenobject",
 
-    board.nodes.push(this);
+    init: function(self, board) {
+        self.board = board;
+    },
+});
 
-    this.draw = function() {
-        var ctx = board.ctx;
-        ctx.save();
+var Node = ScreenObject.extend({
+    type: "node",
+
+    init: function(self, board, x, y) {
+        self._super(board);
+        self.x = x;
+        self.y = y;
+        self.r = 5;
+        self.elements1 = [];
+        self.elements2 = [];
+        self.selected = false;
+        self.hover = false;
+
+        board.nodes.push(self);
+    },
+
+    draw: function(self) {
+        var ctx = self.board.ctx;
+        ctx.save()
 
         ctx.strokeStyle = 'rgb(0,0,0)';
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+        ctx.arc(self.x, self.y, self.r, 0, Math.PI*2, true);
         ctx.closePath();
 
-        if (this.hover) {
+        if (self.hover) {
             ctx.fillStyle = 'rgb(196, 196, 196)';
         } else {
             ctx.fillStyle = 'rgb(128, 128, 128)';
@@ -274,44 +299,43 @@ function Node(board, x, y) {
         ctx.fill();
         ctx.stroke();
 
-        if (this.selected) {
+        if (self.selected) {
+            ctx.strokeStyle = 'rgb(255,0,0)';
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.r + 3, 0, Math.PI*2, true);
+            ctx.arc(self.x, self.y, self.r + 3, 0, Math.PI*2, true);
             ctx.closePath();
             ctx.stroke();
         }
 
-        ctx.fillStyle = "rgba(0,0,0,0.7)"
-            var text_x = this.x + 10;
-        var text_y = this.y + 10;
-        for (var i=0; i<this.notes.length; i++) {
-            ctx.fillText(key + ': ' + this.notes[i], text_x, text_y);
-            text_y += 12;
-        }
-
         ctx.restore();
-    }
+    },
 
-    /* Check if a given point is within the bounds of this node. */
-    this.hit_test = function(x, y) {
+    /* Check if a given point is within the bounds of self node. */
+    hit_test: function(self, x, y) {
         // Make clicking a bit easier.
-        var fuzzy_r = this.r + 5;
+        var fuzzy_r = self.r + 5;
 
         // Fast bounding box check
-        if ((Math.abs(x - this.x) > fuzzy_r) || (Math.abs(y - this.y) > fuzzy_r)) {
+        if ((Math.abs(x - self.x) > fuzzy_r) || (Math.abs(y - self.y) > fuzzy_r)) {
             return false;
         }
         // Check the actual circle.
-        var d_sq = Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2);
+        var d_sq = Math.pow(x - self.x, 2) + Math.pow(y - self.y, 2);
         return d_sq < Math.pow(fuzzy_r, 2);
-    }
+    },
 
-	this.connected = function(node) {
+    element_count: function(self) {
+        return self.elements1.length + self.elements2.length;
+    },
+
+    /* Is self node connected to another node? */
+    connected: function(self, node) {
 		var i, j;
 		var flag;
 		var n1, n2;
 		var cleared_nodes = [];
-		var uncleared_nodes = [this];
+		var uncleared_nodes = [self];
+
 		while (uncleared_nodes.length > 0) {
 			n1 = uncleared_nodes.pop();
 			if (n1 === node) {
@@ -337,7 +361,7 @@ function Node(board, x, y) {
 					}
 				}
 			}
-			for (i=0; i<this.elements2.length; i++) {
+			for (i=0; i<self.elements2.length; i++) {
 				if (n1.elements2[i].type == "line") {
 					n2 = n1.elements2[i].n1;
 					flag = false;
@@ -358,28 +382,27 @@ function Node(board, x, y) {
 			}
 		}
 		return false;
-	}
+    },
+});
 
-	this.element_count = function() {
-		return this.elements1.length + this.elements2.length;
-	}
-}
+var Wire = ScreenObject.extend({
+    type: "line",
 
-function Line(board, n1, n2) {
-    this.type = "line";
-    this.board = board;
-    this.n1 = n1;
-    //n1.elements1.push(this);
-    this.n2 = n2;
+    init: function(self, board, n1, n2) {
+        self._super(board);
+        self.n1 = n1;
+        //n1.elements1.push(self)
+        self.n2 = n2;
+        self.notes = [];
 
-    this.notes = {'resistance': 1};
+        board.wires.push(self)
+    },
 
-    board.wires.push(this);
-
-    this.draw = function() {
+    draw: function(self) {
         var ctx = board.ctx;
         ctx.save();
-        if (this.selected) {
+
+        if (self.selected) {
             ctx.strokeStyle = 'rgb(255,0,0)';
         } else {
             ctx.strokeStyle = 'rgb(0,0,0)';
@@ -387,17 +410,17 @@ function Line(board, n1, n2) {
         ctx.strokeWeight = 2;
 
         ctx.beginPath();
-        ctx.moveTo(this.n1.x, this.n1.y);
-        ctx.lineTo(this.n2.x, this.n2.y);
+        ctx.moveTo(self.n1.x, self.n1.y);
+        ctx.lineTo(self.n2.x, self.n2.y);
         ctx.closePath();
         ctx.stroke();
 
-        var text_x = (this.n1.x + this.n2.x) / 2;
-        var text_y = (this.n1.y + this.n2.y) / 2;
-        if (this.n1.x == this.n2.x) {
+        var text_x = (self.n1.x + self.n2.x) / 2;
+        var text_y = (self.n1.y + self.n2.y) / 2;
+        if (self.n1.x == self.n2.x) {
             var slope = NaN;
         } else {
-            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x);
+            var slope = (self.n1.y - self.n2.y) / (self.n1.x - self.n2.x);
         }
 
         if (slope > 0) {
@@ -407,51 +430,46 @@ function Line(board, n1, n2) {
         }
         text_x += Math.abs(per_line / 2);
         text_y += per_line / 2;
-        for (var key in this.notes) {
-            ctx.fillText(this.notes[key], text_x, text_y);
+        for (var key in self.notes) {
+            ctx.fillText(self.notes[key], text_x, text_y);
             text_y += per_line;
         }
 
         ctx.restore();
-    }
+    },
 
-    this.hit_test = function(x, y) {
+    hit_test: function(self, x, y) {
         // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
-        var lx = this.n2.x - this.n1.x;
-        var ly = this.n2.y - this.n1.y;
+        var lx = self.n2.x - self.n1.x;
+        var ly = self.n2.y - self.n1.y;
 
-        var rx = this.n1.x - x;
-        var ry = this.n1.y - y;
+        var rx = self.n1.x - x;
+        var ry = self.n1.y - y;
 
         var distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
 
         return distance < 5;
-    }
+    },
 
-    this.remove = function() {
-        var idx = this.board.wires.indexOf(this);
+    remove: function(self) {
+        var idx = self.board.wires.indexOf(self);
         if (idx != -1) {
-            this.board.wires.splice(idx, 1); // remove if found
+            self.board.wires.splice(idx, 1); // remove if found
         }
         return null;
-    }
-}
+    },
+});
 
-function Resistor(board, n1, n2, resistance) {
-    this.type = "resistor";
-    this.board = board;
-    this.n1 = n1;
-    //n1.elements1.push(this);
-    this.n2 = n2;
+var Resistor = Wire.extend({
+    init: function(self, board, n1, n2, resistance) {
+        self._super(board, n1, n2);
+        self.resistance = resistance;
+    },
 
-    this.resistance = resistance;
-
-    board.wires.push(this);
-
-    this.draw = function() {
+    draw: function(self) {
         var ctx = board.ctx;
         ctx.save();
-        if (this.selected) {
+        if (self.selected) {
             ctx.strokeStyle = 'rgb(255,0,0)';
         } else {
             ctx.strokeStyle = 'rgb(0,0,0)';
@@ -459,12 +477,12 @@ function Resistor(board, n1, n2, resistance) {
         ctx.strokeWeight = 2;
 
         var mid = {
-            x: (this.n1.x + this.n2.x) / 2,
-            y: (this.n1.y + this.n2.y) / 2,
+            x: (self.n1.x + self.n2.x) / 2,
+            y: (self.n1.y + self.n2.y) / 2,
         };
         var l = {
-            x: this.n1.x - this.n2.x,
-            y: this.n1.y - this.n2.y,
+            x: self.n1.x - self.n2.x,
+            y: self.n1.y - self.n2.y,
         }
         var r1 = {
             x: mid.x + (l.x * 0.1),
@@ -489,7 +507,7 @@ function Resistor(board, n1, n2, resistance) {
         };
 
         ctx.beginPath();
-        ctx.moveTo(this.n1.x, this.n1.y);
+        ctx.moveTo(self.n1.x, self.n1.y);
         ctx.lineTo(r1.x, r1.y);
         var sign = 1;
         for (var d=0; d<10; d++) {
@@ -499,15 +517,15 @@ function Resistor(board, n1, n2, resistance) {
             sign *= -1;
         }
         ctx.lineTo(r2.x, r2.y);
-        ctx.lineTo(this.n2.x, this.n2.y);
+        ctx.lineTo(self.n2.x, self.n2.y);
         ctx.stroke();
 
-        var text_x = (this.n1.x + this.n2.x) / 2;
-        var text_y = (this.n1.y + this.n2.y) / 2;
-        if (this.n1.x == this.n2.x) {
+        var text_x = (self.n1.x + self.n2.x) / 2;
+        var text_y = (self.n1.y + self.n2.y) / 2;
+        if (self.n1.x == self.n2.x) {
             var slope = NaN;
         } else {
-            var slope = (this.n1.y - this.n2.y) / (this.n1.x - this.n2.x);
+            var slope = (self.n1.y - self.n2.y) / (self.n1.x - self.n2.x);
         }
 
         if (slope > 0) {
@@ -517,54 +535,119 @@ function Resistor(board, n1, n2, resistance) {
         }
         text_x += Math.abs(per_line / 2);
         text_y += per_line / 2;
-        /*for (var i=0; i<this.notes.length; i++) {
-            ctx.fillText(this.notes[i], text_x, text_y);
+        /*for (var i=0; i<self.notes.length; i++) {
+            ctx.fillText(self.notes[i], text_x, text_y);
             text_y += per_line;
         }*/
 
         ctx.restore();
-    }
+    },
+    dragstart: function(self, e, target) {
+        if (target) {
+            self.last_drag_x = e.real_x;
+            self.last_drag_y = e.real_y;
 
-    this.hit_test = function(x, y) {
-        // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
-        var lx = this.n2.x - this.n1.x;
-        var ly = this.n2.y - this.n1.y;
+            // If we clicked on a non-selected element, unselect everything and
+            // select it.
+            if (!target.selected) {
+                for (var i=0; i<self.board.nodes.length; i++) {
+                    self.board.nodes[i].selected = false;
+                }
+                for (var i=0; i<self.board.wires.length; i++) {
+                    self.board.wires[i].selected = false;
+                }
+                target.selected = true;
+            }
 
-        var rx = this.n1.x - x;
-        var ry = this.n1.y - y;
-
-        var distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
-
-        return distance < 5;
-    }
-    this.remove = function() {
-        var idx = this.board.wires.indexOf(this);
-        if (idx != -1) {
-            this.board.wires.splice(idx, 1); // remove if found
+            // Make snapping cool.
+            if (self.board.snap) {
+                var p = self.board.snap_to(target.x, target.y);
+                for (var i=0; i<self.board.nodes.length; i++) {
+                    var it = self.board.nodes[i];
+                    if (it.selected) {
+                        it.x += p.x - target.x;
+                        it.y += p.y - target.y;
+                    }
+                }
+                for (var i=0; i<self.board.wires.length; i++) {
+                    var it = self.board.wires[i];
+                    if (it.selected) {
+                        it.x += p.x - target.x;
+                        it.y += p.y - target.y;
+                    }
+                }
+                target.x = p.x;
+                target.y = p.y;
+            }
         }
-        return null;
-    }
-}
+    },
+    drag: function(self, e, target) {
+        if (target) {
+            var dx = e.real_x - self.last_drag_x;
+            var dy = e.real_y - self.last_drag_y;
 
-function ArrowTool(board) {
-    this.type = "arrow-tool";
-    this.board = board;
+            if (board.snap) {
+                dx -= dx % board.snap_size;
+                dy -= dy % board.snap_size;
+            }
 
-    this.drag_offset_x = 0;
-    this.drag_offset_y = 0;
+            for (var i=0; i<board.nodes.length; i++) {
+                if (self.board.nodes[i].selected) {
+                    self.board.nodes[i].x += dx;
+                    self.board.nodes[i].y += dy;
+                }
+            }
+            for (var i=0; i<board.wires.length; i++) {
+                if (self.board.wires[i].selected) {
+                    var n1 = self.board.wires[i].n1;
+                    var n2 = self.board.wires[i].n2;
+                    if (!n1.selected) {
+                        n1.x += dx;
+                        n1.y += dy;
+                    }
+                    if (!n2.selected) {
+                        n2.x += dx;
+                        n2.y += dy;
+                    }
+                }
+            }
 
-    var arrow_tool = this;
+            self.last_drag_x += dx;
+            self.last_drag_y += dy;
+        }
+    },
+});
 
-    this.elem = $('<div class="tool" id="tool_arrow">Arrow</div>')
-        .appendTo('#tools')
-        .bind('click', function() {
-            arrow_tool.board.set_tool(arrow_tool);
-        });
+var Tool = Class.extend({
+    type: "tool",
 
-    this.mousedown = function(){};
-    this.mouseup = function(){};
-    this.mousemove = function(){};
-    this.click = function(e, target) {
+    init: function(self, board) {
+        self.board = board;
+    },
+
+    mousedown: function() {},
+    mouseup: function() {},
+    mousemove: function() {},
+    mouseclick: function() {},
+    dragstart: function() {},
+    drag: function() {},
+    dragend: function() {},
+});
+
+var ArrowTool = Tool.extend({
+    type: "arrow-tool",
+
+    init: function(self, board) {
+        self._super(board);
+        self.elem = $('<div class="tool" id="tool_arrow">Arrow</div>')
+            .appendTo('#tools')
+            .bind('click', function() {
+                arrow_tool.board.set_tool(arrow_tool);
+            }
+        );
+    },
+
+    click: function(self, e, target) {
         var selected_objs = [];
         for (var i=0; i<board.nodes.length; i++) {
             if (board.nodes[i].selected) {
@@ -592,201 +675,101 @@ function ArrowTool(board) {
                 selected_objs[i].selected = false;
             }
         }
-    };
-    this.dragstart = function(e, target) {
-        if (target) {
-            this.last_drag_x = e.real_x;
-            this.last_drag_y = e.real_y;
+    },
+});
 
-            // If we clicked on a non-selected element, unselect everything and
-            // select it.
-            if (!target.selected) {
-                for (var i=0; i<this.board.nodes.length; i++) {
-                    this.board.nodes[i].selected = false;
-                }
-                for (var i=0; i<this.board.wires.length; i++) {
-                    this.board.wires[i].selected = false;
-                }
-                target.selected = true;
+var NodeTool = Tool.extend({
+    type: "node-tool",
+    init: function(self, board) {
+        self._super(board);
+
+        self.elem = $('<div class="tool" id="tool_node">Nodes</div>')
+            .appendTo('#tools')
+            .bind('click', function() {
+                self.board.set_tool(self);
             }
+        );
+    },
 
-            // Make snapping cool.
-            if (this.board.snap) {
-                var p = this.board.snap_to(target.x, target.y);
-                for (var i=0; i<this.board.nodes.length; i++) {
-                    var it = this.board.nodes[i];
-                    if (it.selected) {
-                        it.x += p.x - target.x;
-                        it.y += p.y - target.y;
-                    }
-                }
-                for (var i=0; i<this.board.wires.length; i++) {
-                    var it = this.board.wires[i];
-                    if (it.selected) {
-                        it.x += p.x - target.x;
-                        it.y += p.y - target.y;
-                    }
-                }
-                target.x = p.x;
-                target.y = p.y;
+    click: function(self, e) {
+        var p = self.board.snap_to(e.real_x, e.real_y);
+        new Node(self.board, p.x, p.y);
+    },
+});
+
+var LineTool = Tool.extend({
+    type: "line-tool",
+    init: function(self, board) {
+        self._super(board);
+        self.elem = $('<div class="tool" id="tool_line">Lines</div>')
+            .appendTo('#tools')
+            .bind('click', function() {
+                line_tool.board.set_tool(line_tool);
             }
-        }
-    };
-    this.drag = function(e, target) {
-        if (target) {
-            var dx = e.real_x - this.last_drag_x;
-            var dy = e.real_y - this.last_drag_y;
+        );
+    },
 
-            if (board.snap) {
-                dx -= dx % board.snap_size;
-                dy -= dy % board.snap_size;
-            }
-
-            for (var i=0; i<board.nodes.length; i++) {
-                if (this.board.nodes[i].selected) {
-                    this.board.nodes[i].x += dx;
-                    this.board.nodes[i].y += dy;
-                }
-            }
-            for (var i=0; i<board.wires.length; i++) {
-                if (this.board.wires[i].selected) {
-                    var n1 = this.board.wires[i].n1;
-                    var n2 = this.board.wires[i].n2;
-                    if (!n1.selected) {
-                        n1.x += dx;
-                        n1.y += dy;
-                    }
-                    if (!n2.selected) {
-                        n2.x += dx;
-                        n2.y += dy;
-                    }
-                }
-            }
-
-            this.last_drag_x += dx;
-            this.last_drag_y += dy;
-        }
-    };
-    this.dragend = function(){};
-}
-
-function NodeTool(board) {
-    this.type = "node-tool";
-    this.board = board;
-
-    // `this` is overwritten in jquery callbacks, so save it here.
-    var node_tool = this;
-
-    this.elem = $('<div class="tool" id="tool_node">Nodes</div>')
-        .appendTo('#tools')
-        .bind('click', function() {
-            node_tool.board.set_tool(node_tool);
-        });
-
-    this.mousedown = function(){};
-    this.mouseup = function(){};
-    this.mousemove = function(){};
-    this.click = function(e) {
-        var p = this.board.snap_to(e.real_x, e.real_y);
-        var x = p.x;
-        var y = p.y;
-
-        new Node(this.board, x, y);
-    };
-    this.dragstart = function(){};
-    this.drag = function(){};
-    this.dragend = function(){};
-}
-
-function LineTool(board) {
-    this.type = "line-tool";
-    this.board = board;
-
-    // `this` is overwritten in jquery callbacks, so save it here.
-    var line_tool = this;
-
-    this.temp_end_node = null;
-    this.temp_line = null;
-
-    // Set the kind of line to make, so sub classes can overwrite it.
-    this.line_kind = Resistor;
-
-    this.elem = $('<div class="tool" id="tool_line">Lines</div>')
-        .appendTo('#tools')
-        .bind('click', function() {
-            line_tool.board.set_tool(line_tool);
-        });
-
-    this.mousedown = function(e, target) {};
-    this.mouseup = function() {}
-    this.click = function(e) {}
-    this.mousemove = function(e) {}
-    this.dragstart = function(e, target) {;
-        if (this.temp_line) {
+    dragstart: function(self, e, target) {
+        if (self.temp_line) {
             // Why do we still have one of these?
-            this.temp_line.remove();
-            this.temp_line = null;
+            self.temp_line.remove();
+            self.temp_line = null;
         }
         if (target && target.type == "node") {
-            this.temp_end_node = {'x': e.real_x, 'y': e.real_y};
-            this.temp_line = new this.line_kind(this.board, target, this.temp_end_node, 1);
+            self.temp_end_node = {'x': e.real_x, 'y': e.real_y};
+            self.temp_line = new self.line_kind(self.board, target, self.temp_end_node, 1);
         }
-    }
-    this.drag = function(e, target) {
-        if (this.temp_end_node) {
-            this.temp_end_node.x = e.real_x;
-            this.temp_end_node.y = e.real_y;
+    },
+
+    drag: function(self, e, target) {
+        if (self.temp_end_node) {
+            self.temp_end_node.x = e.real_x;
+            self.temp_end_node.y = e.real_y;
         }
-    };
-    this.dragend = function(e) {
+    },
+
+    dragend: function(self, e) {
         var hit = false;
-        for (var i=0; i<this.board.nodes.length; i++) {
-            var it = this.board.nodes[i];
+        for (var i=0; i<self.board.nodes.length; i++) {
+            var it = self.board.nodes[i];
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
-                if (it != this.temp_line.n1) {
-                    this.temp_line.n2 = it;
+                if (it != self.temp_line.n1) {
+                    self.temp_line.n2 = it;
                     hit = true;
                 }
                 break;
             }
         }
         if (!hit) {
-            this.temp_line.remove();
+            self.temp_line.remove();
         }
-        this.temp_line = null;
-        this.temp_end_node = null;
-    }
-}
+        self.temp_line = null;
+        self.temp_end_node = null;
+    },
+});
 
-function Serializer(board) {
-    this.type = "serializer";
-    this.board = board;
+var Serializer = Class.extend({
+    type: "serializer",
 
-    // `this` is overwritten in jquery callbacks, so save it here.
-    var node_tool = this;
+    init: function(board) {
+        self.elem = $('<div class="tool" id="tool_save">Save</div>')
+            .appendTo('#serial')
+            .bind('click', function() {
+                node_tool.board.serialize();
+            }
+        );
+    },
+});
 
-    this.elem = $('<div class="tool" id="tool_save">Save</div>')
-        .appendTo('#serial')
-        .bind('click', function() {
-            node_tool.board.serialize();
-        });
+var Deserializer = Class.extend({
+    type: "deserializer",
 
-}
-
-function Deserializer(board) {
-    this.type = "deserializer";
-    this.board = board;
-
-    // `this` is overwritten in jquery callbacks, so save it here.
-    var node_tool = this;
-
-    this.elem = $('<div class="tool" id="tool_load">Load</div>')
-        .appendTo('#serial')
-        .bind('click', function() {
-            node_tool.board.deserialize();
-        });
-
-}
-
-
-
+    init: function(board) {
+        self.elem = $('<div class="tool" id="tool_load">Load</div>')
+            .appendTo('#serial')
+            .bind('click', function() {
+                node_tool.board.deserialize();
+            }
+        );
+    },
+});
