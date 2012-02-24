@@ -425,7 +425,7 @@ function Line(board, n1, n2) {
     this.type = "line";
     this.board = board;
     this.n1 = n1;
-    //n1.elements1.push(this);
+    n1.elements1.push(this);
     this.n2 = n2;
 
     this.notes = {'resistance': 1};
@@ -497,7 +497,7 @@ function Resistor(board, n1, n2, resistance) {
     this.type = "resistor";
     this.board = board;
     this.n1 = n1;
-    //n1.elements1.push(this);
+    n1.elements1.push(this);
     this.n2 = n2;
 
     this.resistance = resistance;
@@ -801,6 +801,7 @@ function LineTool(board) {
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
                 if (it != this.temp_line.n1) {
                     this.temp_line.n2 = it;
+                    it.elements2.push(this.temp_line);
                     hit = true;
                 }
                 break;
