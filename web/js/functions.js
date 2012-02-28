@@ -33,10 +33,8 @@
                         this._super = _super[name];
 
                         // The method only need to be bound temporarily, so we
-                        // remove it when we're done executing. We don't need
-                        // to add self, because calling the function will do
-                        // that. Doing so would add two selfes.
-                        var ret = fn.apply(this, arguments);
+                        // remove it when we're done executing.
+                        var ret = fn.apply(this, make_self(this, arguments));
                         this._super = tmp;
 
                         return ret;
@@ -59,7 +57,8 @@
         function Class() {
             // All construction is actually done in the init method
             if ( !initializing && this.init ) {
-                this.init.apply(this, make_self(this, arguments));
+                // We don't need make_self here, since it is calling the one we made above.
+                this.init.apply(this, arguments);
             }
         }
 
@@ -124,4 +123,3 @@ function getCursorPosition(e, target) {
 
     return {'x': x, 'y': y};
 }
-

@@ -19,6 +19,12 @@ $(function() {
  *             self.thing += n;
  *         }
  *    });
+ *
+ *    var MyExtension = MyClass.extend({
+ *        init: function(self) {
+ *            seld.thing = 10;
+ *        },
+ *    });
  */
 
 var Board = Class.extend({
@@ -37,8 +43,8 @@ var Board = Class.extend({
         self.snap = false;
         self.snap_size = 20;
 
-        //setInterval(self.redraw, 33);
-        //setInterval(self.ui, 200);
+        setInterval(self.redraw, 33);
+        setInterval(self.ui, 200);
 
         $('#board').bind('mousedown', self.mousedown);
         $('#board').bind('mousemove', self.mousemove);
@@ -52,7 +58,6 @@ var Board = Class.extend({
     },
 
     redraw: function(self) {
-        return;
         self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
         for (var i=0; i < self.wires.length; i++) {
             self.wires[i].draw();
@@ -117,6 +122,7 @@ var Board = Class.extend({
 
     mousedown: function(self, e) {
         if (!self.cur_tool) {
+            console.log("No tool selected. self.cur_tool=" + self.cur_tool)
             return;
         }
         var p = getCursorPosition(e, $('#board'));
@@ -399,7 +405,7 @@ var Wire = ScreenObject.extend({
     },
 
     draw: function(self) {
-        var ctx = board.ctx;
+        var ctx = self.board.ctx;
         ctx.save();
 
         if (self.selected) {
@@ -467,7 +473,7 @@ var Resistor = Wire.extend({
     },
 
     draw: function(self) {
-        var ctx = board.ctx;
+        var ctx = self.board.ctx;
         ctx.save();
         if (self.selected) {
             ctx.strokeStyle = 'rgb(255,0,0)';
@@ -586,18 +592,18 @@ var Resistor = Wire.extend({
             var dx = e.real_x - self.last_drag_x;
             var dy = e.real_y - self.last_drag_y;
 
-            if (board.snap) {
-                dx -= dx % board.snap_size;
-                dy -= dy % board.snap_size;
+            if (self.board.snap) {
+                dx -= dx % self.board.snap_size;
+                dy -= dy % self.board.snap_size;
             }
 
-            for (var i=0; i<board.nodes.length; i++) {
+            for (var i=0; i<self.board.nodes.length; i++) {
                 if (self.board.nodes[i].selected) {
                     self.board.nodes[i].x += dx;
                     self.board.nodes[i].y += dy;
                 }
             }
-            for (var i=0; i<board.wires.length; i++) {
+            for (var i=0; i<self.board.wires.length; i++) {
                 if (self.board.wires[i].selected) {
                     var n1 = self.board.wires[i].n1;
                     var n2 = self.board.wires[i].n2;
@@ -628,7 +634,7 @@ var Tool = Class.extend({
     mousedown: function() {},
     mouseup: function() {},
     mousemove: function() {},
-    mouseclick: function() {},
+    click: function() {},
     dragstart: function() {},
     drag: function() {},
     dragend: function() {},
@@ -638,25 +644,27 @@ var ArrowTool = Tool.extend({
     type: "arrow-tool",
 
     init: function(self, board) {
-        self._super(board);
+        //self._super(board);
+        self.board = board;
         self.elem = $('<div class="tool" id="tool_arrow">Arrow</div>')
             .appendTo('#tools')
             .bind('click', function() {
-                arrow_tool.board.set_tool(arrow_tool);
+                self.board.set_tool(self);
             }
         );
     },
 
     click: function(self, e, target) {
+        self._super(e, target);
         var selected_objs = [];
-        for (var i=0; i<board.nodes.length; i++) {
-            if (board.nodes[i].selected) {
-                selected_objs.push(board.nodes[i]);
+        for (var i=0; i<self.board.nodes.length; i++) {
+            if (self.board.nodes[i].selected) {
+                selected_objs.push(self.board.nodes[i]);
             }
         }
-        for (var i=0; i<board.wires.length; i++) {
-            if (board.wires[i].selected) {
-                selected_objs.push(board.wires[i]);
+        for (var i=0; i<self.board.wires.length; i++) {
+            if (self.board.wires[i].selected) {
+                selected_objs.push(self.board.wires[i]);
             }
         }
         if (target) {
@@ -681,7 +689,7 @@ var ArrowTool = Tool.extend({
 var NodeTool = Tool.extend({
     type: "node-tool",
     init: function(self, board) {
-        self._super(board);
+        self.board = board;
 
         self.elem = $('<div class="tool" id="tool_node">Nodes</div>')
             .appendTo('#tools')
@@ -691,9 +699,11 @@ var NodeTool = Tool.extend({
         );
     },
 
-    click: function(self, e) {
+    click: function(self, e, target) {
+        console.log('NodeTool.click');
+        self._super(e, target);
         var p = self.board.snap_to(e.real_x, e.real_y);
-        new Node(self.board, p.x, p.y);
+        var n = new Node(self.board, p.x, p.y);
     },
 });
 
@@ -704,12 +714,14 @@ var LineTool = Tool.extend({
         self.elem = $('<div class="tool" id="tool_line">Lines</div>')
             .appendTo('#tools')
             .bind('click', function() {
-                line_tool.board.set_tool(line_tool);
+                self.board.set_tool(self);
             }
         );
     },
 
     dragstart: function(self, e, target) {
+        self._super(e, target);
+        var p = self.board.snap_to(e.real_x, e.real_y);
         if (self.temp_line) {
             // Why do we still have one of these?
             self.temp_line.remove();
@@ -722,6 +734,7 @@ var LineTool = Tool.extend({
     },
 
     drag: function(self, e, target) {
+        self._super(e, target);
         if (self.temp_end_node) {
             self.temp_end_node.x = e.real_x;
             self.temp_end_node.y = e.real_y;
@@ -729,6 +742,7 @@ var LineTool = Tool.extend({
     },
 
     dragend: function(self, e) {
+        self._super(e, target);
         var hit = false;
         for (var i=0; i<self.board.nodes.length; i++) {
             var it = self.board.nodes[i];
@@ -755,7 +769,7 @@ var Serializer = Class.extend({
         self.elem = $('<div class="tool" id="tool_save">Save</div>')
             .appendTo('#serial')
             .bind('click', function() {
-                node_tool.board.serialize();
+                self.board.serialize();
             }
         );
     },
@@ -768,7 +782,7 @@ var Deserializer = Class.extend({
         self.elem = $('<div class="tool" id="tool_load">Load</div>')
             .appendTo('#serial')
             .bind('click', function() {
-                node_tool.board.deserialize();
+                self.board.deserialize();
             }
         );
     },
