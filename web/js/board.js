@@ -25,7 +25,7 @@ $(function() {
 
     var a = new ArrowTool(b);
     var n = new NodeTool(b);
-    var n = new LineTool(b);
+    var l = new LineTool(b);
     var s = new Serializer(b);
     var d = new Deserializer(b);
 
