@@ -1,45 +1,91 @@
 /* OOP helper. Prototype-Class
- *
- * Make a class like this
- *
- *    var MyClass = PClass.create({
- *         init: function() {  // this is the constructor
- *             this.thing = 5;
- *         }
- *         add_to: function(n) {
- *             this.thing += n;
- *         }
- *    });
- *
- * Extend a class like this
- *
- *     var MyExtension = MyClass.extend({
- *         init: function() {
- *             this._super();
- *             this.thing *= 2;
- *         }
- *         add_to: function(n) {
- *             this.thing += n*2;
- *         }
- *     });
+ * Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ * Inspired by base2 and Prototype
  */
 (function(){
-  var isFn = function(fn) { return typeof fn == "function"; };
-  PClass = function(){};
-  PClass.create = function(proto) {
-    var k = function(magic) { // call init only if there's no magic cookie
-      if (magic != isFn && isFn(this.init)) this.init.apply(this, arguments);
+    var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+
+    // The base Class implementation (does nothing)
+    this.Class = function(){};
+
+    // Create a new Class that inherits from this class
+    Class.extend = function(prop) {
+        var _super = this.prototype;
+
+        // Instantiate a base class (but only create the instance,
+        // don't run the init constructor)
+        initializing = true;
+        var prototype = new this();
+        initializing = false;
+
+        // Copy the properties over onto the new prototype
+        for (var name in prop) {
+            // Check if we're overwriting an existing function
+            if (typeof prop[name] == 'function' && typeof _super[name] == "function" && fnTest.test(prop[name])) {
+                var closure = function(name, fn) {
+                    return function() {
+                        var tmp = this._super;
+
+                        // Add a new ._super() method that is the same method
+                        // but on the super-class
+                        this._super = _super[name];
+
+                        // The method only need to be bound temporarily, so we
+                        // remove it when we're done executing.
+                        var ret = fn.apply(this, make_self(this, arguments));
+                        this._super = tmp;
+
+                        return ret;
+                    };
+                };
+                prototype[name] = closure(name, prop[name])
+            } else if (typeof prop[name] == 'function') {
+                var closure = function(name, fn) {
+                    return function() {
+                        return fn.apply(this, make_self(this, arguments));
+                    }
+                }
+                prototype[name] = closure(name, prop[name])
+            } else {
+                prototype[name] = prop[name];
+            }
+        }
+
+        // The dummy class constructor
+        function Class() {
+            // All construction is actually done in the init method
+            if ( !initializing && this.init ) {
+                // We don't need make_self here, since it is calling the one we made above.
+                this.init.apply(this, arguments);
+            }
+        }
+
+        // Populate our constructed prototype object
+        Class.prototype = prototype;
+
+        // Enforce the constructor to be what we expect
+        Class.prototype.constructor = Class;
+
+        // And make this class extendable
+        Class.extend = arguments.callee;
+
+        return Class;
     };
-    k.prototype = new this(isFn); // use our private method as magic cookie
-    for (key in proto) (function(fn, sfn){ // create a closure
-      k.prototype[key] = !isFn(fn) || !isFn(sfn) ? fn : // add _super method
-        function() { this._super = sfn; return fn.apply(this, arguments); };
-    })(proto[key], k.prototype[key]);
-    k.prototype.constructor = k;
-    k.extend = this.extend || this.create;
-    return k;
-  };
 })();
+
+/* Take an arguments object, which looks and acts a lot like an array, but
+ * isn't quite, and put something at it's front.
+ */
+var make_self = function(first, args) {
+    var new_args = [first];
+    var i;
+    for (i=0; i < args.length; i++) {
+        new_args[i+1] = args[i];
+    }
+    return new_args;
+};
 
 /* Give strings a format function.
  *
@@ -77,4 +123,3 @@ function getCursorPosition(e, target) {
 
     return {'x': x, 'y': y};
 }
-
