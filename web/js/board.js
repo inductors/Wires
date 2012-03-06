@@ -69,7 +69,6 @@ var Board = Class.extend({
     },
 
     ui: function(self) {
-        return;
         var selected = [];
         var kinds = 0;
 
