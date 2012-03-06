@@ -7,13 +7,14 @@
     background: #DDD url("/img/dot-grid.png");
     position: relative;
     z-index: 0;
+    float: left;
     /* These are actually part of the html.
     width: 800;
     height: 600; */
 }
 
 #sidepanel {
-    float: right;
+    float: left;
     width: 180px;
     height: 590px;
     margin-left: 3px;
