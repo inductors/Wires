@@ -28,6 +28,7 @@ $(function() {
     var l = new LineTool(b);
     var s = new Serializer(b);
     var d = new Deserializer(b);
+    var series = new SeriesTool(b);
 
     b.set_tool(a);
 });
@@ -98,6 +99,41 @@ function Board() {
             output += '<p>None</p>';
         }
         $('#selectedinfo').html(output);
+    }
+
+    this.selected = function() {
+        return board.selected_nodes() + board.selected_wires();
+    }
+
+    this.selected_nodes = function() {
+        var selected = [];
+        var i;
+        var n;
+
+        for (i = 0; i < board.nodes.length; i++) {
+            n = board.nodes[i];
+            if (n.selected) {
+                selected.push(n);
+            }
+        }
+
+        return selected
+    }
+
+
+    this.selected_wires = function() {
+        var selected = [];
+        var i;
+        var w;
+
+        for (i = 0; i < board.wires.length; i++) {
+            w = board.wires[i];
+            if (w.selected) {
+                selected.push(w);
+            }
+        }
+
+        return selected
     }
 
     // Redraw about 30 times a second, once every 33ms.
@@ -844,6 +880,3 @@ function Deserializer(board) {
         });
 
 }
-
-
-

@@ -1,3 +1,16 @@
+function SeriesTool(board) {
+    this.type = 'series_tool';
+    this.board = board;
+
+    var node_tool = this;
+
+    this.elem = $('<div class="tool" id="tool_series">Series</div>')
+        .appendTo('#tools')
+        .bind('click', function() {
+            series_reduce(node_tool.board.selected_wires());
+        });
+}
+
 // returns true if valid, false if invalid
 function series_test (resistors) {
     var i, j; // iterators
@@ -7,6 +20,7 @@ function series_test (resistors) {
     var n; // node
     var flag; // boolean
 
+    uncleared = [];
     for (i = 0; i < resistors.length; i++) {
         r = resistors[i];
         uncleared.push(r);
@@ -15,19 +29,19 @@ function series_test (resistors) {
     r = uncleared.pop;
     nodes = [r.n1, r.n2];
 
-    for (i=0; i < nodes.length; i++) {
+    for (i = 0; i < nodes.length; i++) {
         n = nodes[i];
         flag = true;
         while (flag && (uncleared.length > 0)) {
             flag = false;
             connected = n.resistors;
-            if connected.length == 2 {
-                for (j=0; j < connected.length; j++) {
+            if (connected.length == 2) {
+                for (j = 0; j < connected.length; j++) {
                     r = connected[j];
                     index = uncleared.indexOf(r)
                     if (index != -1) {
                         uncleared.splice(index, 1);
-                        if n.connected(r.n1) {
+                        if (n.connected(r.n1)) {
                             n = r.n1;
                         } else {
                             n = r.n2;
@@ -51,7 +65,7 @@ function series_reduce (resistors) {
     var i; // iterator
     var r, s; // resistor
 
-    if series_test(resistors) {
+    if (series_test(resistors)) {
         r = resistors[0];
         for (i = 1; i < resistors.length; i++) {
             s = resistors[i]
@@ -79,15 +93,14 @@ function parallel_test (resistors) {
     
     for (i = 1; i < resistors.length; i++) {
         r = resistors[i];
-        if n.connected(r.n1) {
+        if (n.connected(r.n1)) {
             uncleared.push(r.n2);
-        } else if n.connected(r.n2) {
+        } else if (n.connected(r.n2)) {
             uncleared.push(r.n1);
         } else {
             return false;
         }
     }
-    for n in uncleared
     for (i = 0; i < uncleared.length; i++) {
         n = uncleared[i];
         if (! nodes[1].connected(n)) {
@@ -99,8 +112,8 @@ function parallel_test (resistors) {
 
 // returns true if valid and successfully transformed, and false if invalid or unsuccessful
 function parallel_reduce (resistors) {
-    if parallel_test(resistors) {
-        reduce;
+    if (parallel_test(resistors)) {
+//        reduce;
         return true;
     } else {
         return false;
@@ -144,7 +157,7 @@ function wye_delta_test (resistors) {
                     flag = false;
                 }
             }
-            if (flag == true) {
+            if (flag) {
                 return n;
             }
         }
@@ -158,7 +171,7 @@ function wye_delta_reduce (resistors) {
     var n = wye_delta_test(resistors); // false or the center node
 
     if (n != false) {
-        reduce;
+//        reduce;
         return true;
     } else {
         return false;
