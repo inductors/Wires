@@ -2,14 +2,17 @@
 $(function() {
     var b = new Board();
 
-    var a = new ArrowTool(b);
-    var n = new NodeTool(b);
-    var l = new LineTool(b);
-    var s = new Serializer(b);
-    var d = new Deserializer(b);
-    var series = new SeriesTool(b);
+    var t = new MoveTool(b);
+    new NodeTool(b);
+    new WireTool(b);
+    new ResistorTool(b);
 
-    b.set_tool(a);
+    new Serializer(b);
+    new Deserializer(b);
+
+    new SeriesTool(b);
+
+    b.set_tool(t);
 });
 
 /*    var MyClass = Class.extend({
@@ -495,6 +498,7 @@ var Wire = ScreenObject.extend({
         self.notes = [];
 
         self.board.wires.push(self)
+        console.log('Wire.init');
     },
 
     draw: function(self) {
@@ -733,13 +737,13 @@ var Tool = Class.extend({
     dragend: function() {},
 });
 
-var ArrowTool = Tool.extend({
+var MoveTool = Tool.extend({
     type: "arrow-tool",
 
     init: function(self, board) {
         //self._super(board);
         self.board = board;
-        self.elem = $('<div class="tool" id="tool_arrow">Arrow</div>')
+        self.elem = $('<div class="tool" id="tool_arrow">Move</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -876,20 +880,26 @@ var NodeTool = Tool.extend({
     },
 });
 
-var LineTool = Tool.extend({
-    type: "line-tool",
+var WireTool = Tool.extend({
+    type: "wire-tool",
+
     init: function(self, board) {
         self._super(board);
-        self.elem = $('<div class="tool" id="tool_line">Lines</div>')
+        self.make_elem();
+        self.line_kind = Wire;
+    },
+
+    make_elem: function(self) {
+        self.elem = $('<div class="tool" id="tool_line">Wires</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
             }
         );
-        self.line_kind = Wire;
     },
 
     dragstart: function(self, e, target) {
+        console.log('WireTool.dragstart');
         self._super(e, target);
         var p = self.board.snap_to(e.real_x, e.real_y);
         if (self.temp_line) {
@@ -912,6 +922,7 @@ var LineTool = Tool.extend({
     },
 
     dragend: function(self, e, target) {
+        console.log('WireTool.dragend');
         self._super(e, target);
         var hit = false;
         for (var i=0; i<self.board.nodes.length; i++) {
@@ -930,6 +941,24 @@ var LineTool = Tool.extend({
         }
         self.temp_line = null;
         self.temp_end_node = null;
+    },
+});
+
+var ResistorTool = WireTool.extend({
+    type: "wire-tool",
+
+    init: function(self, board) {
+        self._super(board);
+        self.line_kind = Resistor;
+    },
+
+    make_elem: function(self) {
+        self.elem = $('<div class="tool" id="tool_line">Resistors</div>')
+            .appendTo('#tools')
+            .bind('click', function() {
+                self.board.set_tool(self);
+            }
+        );
     },
 });
 
