@@ -26,7 +26,7 @@ function series_test (resistors) {
         uncleared.push(r);
     }
 
-    r = uncleared.pop;
+    r = uncleared.pop();
     nodes = [r.n1, r.n2];
 
     for (i = 0; i < nodes.length; i++) {
