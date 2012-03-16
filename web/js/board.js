@@ -116,7 +116,7 @@ var Board = Class.extend({
     },
 
     selected: function(self) {
-        return self.selected_nodes() + self.selected_wires();
+        return self.selected_nodes().concat(self.selected_elements());
     },
 
     selected_nodes: function(self) {
@@ -134,7 +134,7 @@ var Board = Class.extend({
         return selected;
     },
 
-    selected_wires: function(self) {
+    selected_elements: function(self) {
         var selected = [];
         var i;
         var w;
@@ -142,6 +142,36 @@ var Board = Class.extend({
         for (i = 0; i < self.wires.length; i++) {
             w = self.wires[i];
             if (w.selected) {
+                selected.push(w);
+            }
+        }
+
+        return selected
+    },
+
+    selected_wires: function(self) {
+        var selected = [];
+        var i;
+        var w;
+
+        for (i = 0; i < self.wires.length; i++) {
+            w = self.wires[i];
+            if (w.selected && (w.type == 'wire')) {
+                selected.push(w);
+            }
+        }
+
+        return selected
+    },
+
+    selected_resistors: function(self) {
+        var selected = [];
+        var i;
+        var w;
+
+        for (i = 0; i < self.wires.length; i++) {
+            w = self.wires[i];
+            if (w.selected && (w.type == 'resistor')) {
                 selected.push(w);
             }
         }

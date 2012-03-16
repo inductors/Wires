@@ -7,7 +7,7 @@ function SeriesTool(board) {
     this.elem = $('<div class="tool" id="tool_series">Series</div>')
         .appendTo('#tools')
         .bind('click', function() {
-            series_reduce(board.selected_wires());
+            series_reduce(board.selected_resistors());
         });
 }
 
