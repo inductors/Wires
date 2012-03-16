@@ -94,8 +94,8 @@ function series_test (resistors) {
                             n = r.n1;
                         } else {
                             n = r.n2;
-                        flag = true;
-                        break;
+                            flag = true;
+                            break;
                         }
                     }
                 }
@@ -104,6 +104,7 @@ function series_test (resistors) {
     }
     if (uncleared.length > 0) {
         console.log("circuit was not found to be valid series circuit");
+        console.log("the following number of resistors were found to not be in ");
         return true;
     } else {
         console.log("circuit found to be valid series circuit");
@@ -123,7 +124,8 @@ function series_reduce (resistors) {
             s = resistors[i]
             if (s.type == 'resistor') {
                 r.resistance += s.resistance;
-                s.n2.elements2.push(new Wire(s.board, s.n1, s.n2));
+                new Wire(s.board, s.n1, s.n2)
+//                s.n2.elements2.push(new Wire(s.board, s.n1, s.n2));
                 s.remove();
             }
         }   
@@ -189,11 +191,24 @@ function parallel_reduce (resistors) {
 }
 function resistor_test (resistors) {
     console.log("resistor_test");
+    console.log("resistor not tested for reducability");
+    return true;
     ;
 }
 function resistor_reduce (resistors) {
     console.log("resistor_reduce");
-    ;
+    var i;
+
+    if (resistor_test(resistors)) {
+        for (i = 0; i < resistors.length; i++) {
+            if (resistors[i].type == 'resistor') {
+                resistors[i].remove();
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
 }
 function delta_wye_test (resistors) {
     console.log("delta_wye_test");

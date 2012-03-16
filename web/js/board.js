@@ -10,9 +10,9 @@ $(function() {
     new Serializer(b);
     new Deserializer(b);
 
+    new RemoveTool(b);
     new SeriesTool(b);
     new ParallelTool(b);
-//    new RemoveTool(b);
 //    new DeltaWyeTool(b);
 //    new WyeDeltaTool(b);
 
@@ -417,7 +417,7 @@ var Node = ScreenObject.extend({
             }
             cleared_nodes.push(n1);
             for (i = 0; i < n1.elements1.length; i++) {
-                if (n1.elements1[i].type == "line") {
+                if (n1.elements1[i].type == "wire") {
                     n2 = n1.elements1[i].n2;
                     flag = false;
                     for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
@@ -436,7 +436,7 @@ var Node = ScreenObject.extend({
                 }
             }
             for (i = 0; i < self.elements2.length; i++) {
-                if (n1.elements2[i].type == "line") {
+                if (n1.elements2[i].type == "wire") {
                     n2 = n1.elements2[i].n1;
                     flag = false;
                     for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
@@ -459,7 +459,7 @@ var Node = ScreenObject.extend({
     },
 
     elements: function(self) {
-        return self.elements1 + self.elements2;
+        return self.elements1.concat(self.elements2);
     },
 
     resistors: function(self) {
@@ -473,7 +473,7 @@ var Node = ScreenObject.extend({
             n1 = uncleared_nodes.pop();
             cleared_nodes.push(n1);
             for (i = 0; i < n1.elements1.length; i++) {
-                if (n1.elements1[i].type == "line") {
+                if (n1.elements1[i].type == "wires") {
                     n2 = n1.elements1[i].n2;
                     flag = false;
                     for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
@@ -494,7 +494,7 @@ var Node = ScreenObject.extend({
                 }
             }
             for (i = 0; i < self.elements2.length; i++) {
-                if (n1.elements2[i].type == "line") {
+                if (n1.elements2[i].type == "wires") {
                     n2 = n1.elements2[i].n1;
                     flag = false;
                     for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
