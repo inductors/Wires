@@ -291,14 +291,12 @@ var Board = Class.extend({
         }
         var keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
         var text = JSON.stringify(self, keys);
-        document.getElementById("frm1").elements[0].value = text;
+        console.log(text);
+        $('#serial input').val(text);
     },
 
     deserialize: function(self) {
-        var text = document.getElementById("frm1").elements[0].value;
-        var boardData = JSON.parse(text);
-        self.nodes = [];
-        var text = document.getElementById("frm1").elements[0].value;
+        var text = $('#serial input').val();
         var boardData = JSON.parse(text);
         self.nodes = [];
         for (var i=0; i<boardData.nodes.length; i++) {
@@ -315,7 +313,7 @@ var Board = Class.extend({
             }
             self.wires[i].notes = boardData.wires[i].notes;
         }
-        document.getElementById("frm1").reset();
+        $('#serial input').val();
         for (var i=0; i<boardData.nodes.length; i++) {
             self.nodes[i] = new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
             self.nodes[i].notes = boardData.nodes[i].notes;
@@ -330,7 +328,7 @@ var Board = Class.extend({
             }
             self.wires[i].notes = boardData.wires[i].notes;
         }
-        document.getElementById("frm1").reset();
+        $('#serial input').val();
     }
 });
 
@@ -1002,9 +1000,11 @@ var Serializer = Class.extend({
     type: "serializer",
 
     init: function(self, board) {
+        self.board = board;
         self.elem = $('<div class="tool" id="tool_save">Save</div>')
             .appendTo('#serial')
             .bind('click', function() {
+                console.log('Serializing.');
                 self.board.serialize();
             }
         );
@@ -1015,9 +1015,11 @@ var Deserializer = Class.extend({
     type: "deserializer",
 
     init: function(self, board) {
+        self.board = board;
         self.elem = $('<div class="tool" id="tool_load">Load</div>')
             .appendTo('#serial')
             .bind('click', function() {
+                console.log('Deserializing.');
                 self.board.deserialize();
             }
         );
