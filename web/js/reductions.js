@@ -71,9 +71,11 @@ function series_reduce (resistors) {
         r = resistors[0];
         for (i = 1; i < resistors.length; i++) {
             s = resistors[i]
-            r.resistance += s.resistance;
-            s.type = 'line';
-            new Wire(s.board, s.n1, s.n2);
+            if (s.type == 'resistor') {
+                r.resistance += s.resistance;
+                s.type = 'line';
+                new Wire(s.board, s.n1, s.n2);
+            }
             s.remove();
         }   
         return true;
