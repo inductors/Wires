@@ -743,7 +743,7 @@ var MoveTool = Tool.extend({
     init: function(self, board) {
         //self._super(board);
         self.board = board;
-        self.elem = $('<div class="tool" id="tool_arrow">Move</div>')
+        self.elem = $('<div class="tool icon-arrow" id="tool_arrow">Arrow</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -864,7 +864,7 @@ var NodeTool = Tool.extend({
     init: function(self, board) {
         self._super(board);
 
-        self.elem = $('<div class="tool" id="tool_node">Nodes</div>')
+        self.elem = $('<div class="tool icon-node" id="tool_node">Nodes</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -890,7 +890,7 @@ var WireTool = Tool.extend({
     },
 
     make_elem: function(self) {
-        self.elem = $('<div class="tool" id="tool_line">Wires</div>')
+        self.elem = $('<div class="tool icon-wire" id="tool_wire">Wires</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -953,7 +953,7 @@ var ResistorTool = WireTool.extend({
     },
 
     make_elem: function(self) {
-        self.elem = $('<div class="tool" id="tool_line">Resistors</div>')
+        self.elem = $('<div class="tool icon-resistor" id="tool_resistor">Resistors</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);

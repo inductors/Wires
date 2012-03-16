@@ -30,6 +30,7 @@
     background-color: #DDD;
     display: inline-block;
     margin-left: 8px;
+    height: 20px;
 }
 
 .tool.active {
@@ -37,3 +38,14 @@
 }
 
 h3 { margin: 0px; }
+
+/* ICONS */
+.icon-resistor, .icon-wire, .icon-arrow, .icon-node {
+    background-repeat: no-repeat;
+    padding-left: 29px;
+    background-position: 3px 3px;
+}
+.icon-resistor { background-image: url('/img/icons/resistor.png'); }
+.icon-wire { background-image: url('/img/icons/wire.png'); }
+.icon-arrow { background-image: url('/img/icons/arrow.png'); }
+.icon-node { background-image: url('/img/icons/node.png'); }
