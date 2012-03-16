@@ -488,7 +488,7 @@ var Node = ScreenObject.extend({
 });
 
 var Wire = ScreenObject.extend({
-    type: "line",
+    type: "wire",
 
     init: function(self, board, n1, n2) {
         self._super(board);
@@ -564,6 +564,8 @@ var Wire = ScreenObject.extend({
 });
 
 var Resistor = Wire.extend({
+    type: "resistor",
+
     init: function(self, board, n1, n2, resistance) {
         self._super(board, n1, n2);
         self.resistance = resistance;
