@@ -11,6 +11,10 @@ $(function() {
     new Deserializer(b);
 
     new SeriesTool(b);
+    new ParallelTool(b);
+//    new RemoveTool(b);
+//    new DeltaWyeTool(b);
+//    new WyeDeltaTool(b);
 
     b.set_tool(t);
 });
