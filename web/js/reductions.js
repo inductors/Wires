@@ -7,7 +7,7 @@ function SeriesTool(board) {
     this.elem = $('<div class="tool" id="tool_series">Series</div>')
         .appendTo('#tools')
         .bind('click', function() {
-            series_reduce(node_tool.board.selected_wires());
+            series_reduce(board.selected_wires());
         });
 }
 
@@ -54,8 +54,10 @@ function series_test (resistors) {
         }
     }
     if (uncleared.length > 0) {
-        return false;
+        console.log("circuit was not found to be valid series circuit");
+        return true;
     } else {
+        console.log("circuit found to be valid series circuit");
         return true;
     }
 }
@@ -71,7 +73,7 @@ function series_reduce (resistors) {
             s = resistors[i]
             r.resistance += s.resistance;
             s.type = 'line';
-            Line(s.board, s.n1, s.n2);
+            new Wire(s.board, s.n1, s.n2);
             s.remove();
         }   
         return true;
