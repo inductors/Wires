@@ -13,6 +13,7 @@ function SeriesTool(board) {
 
 // returns true if valid, false if invalid
 function series_test (resistors) {
+    console.log("series_test");
     var i, j; // iterators
     var nodes; // node array
     var connected, uncleared; // resistor array
@@ -64,6 +65,7 @@ function series_test (resistors) {
 
 // returns true if valid and successfully transformed, and false if invalid or unsuccessful
 function series_reduce (resistors) {
+    console.log("series_reduce");
     var i; // iterator
     var r, s; // resistor
 
@@ -73,10 +75,9 @@ function series_reduce (resistors) {
             s = resistors[i]
             if (s.type == 'resistor') {
                 r.resistance += s.resistance;
-                s.type = 'line';
-                new Wire(s.board, s.n1, s.n2);
+                s.n2.elements2.push(new Wire(s.board, s.n1, s.n2));
+                s.remove();
             }
-            s.remove();
         }   
         return true;
     } else {
@@ -86,6 +87,7 @@ function series_reduce (resistors) {
 
 // returns true if valid, false if invalid
 function parallel_test (resistors) {
+    console.log("series_reduce");
     var i; // iterator
     var nodes, uncleared; // node array
     var n; // node
@@ -116,6 +118,7 @@ function parallel_test (resistors) {
 
 // returns true if valid and successfully transformed, and false if invalid or unsuccessful
 function parallel_reduce (resistors) {
+    console.log("series_reduce");
     if (parallel_test(resistors)) {
 //        reduce;
         return true;
