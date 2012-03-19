@@ -75,6 +75,9 @@ function series_test (resistors) {
         uncleared.push(r);
     }
 
+    console.log("resistors being validated:");
+    console.log(uncleared.length);
+
     r = uncleared.pop();
     nodes = [r.n1, r.n2];
 
@@ -83,12 +86,17 @@ function series_test (resistors) {
         flag = true;
         while (flag && (uncleared.length > 0)) {
             flag = false;
-            connected = n.resistors;
+            connected = n.resistors();
+            console.log("connected resistors:");
+            console.log(connected.length);
             if (connected.length == 2) {
                 for (j = 0; j < connected.length; j++) {
                     r = connected[j];
                     index = uncleared.indexOf(r)
+                    console.log("index of connected resistor:");
+                    console.log(index);
                     if (index != -1) {
+                        console.log("next series resistor found. removing from array.");
                         uncleared.splice(index, 1);
                         if (n.connected(r.n1)) {
                             n = r.n1;
@@ -104,7 +112,8 @@ function series_test (resistors) {
     }
     if (uncleared.length > 0) {
         console.log("circuit was not found to be valid series circuit");
-        console.log("the following number of resistors were found to not be in ");
+        console.log("resistors not in series circuit:");
+        console.log(uncleared.length);
         return true;
     } else {
         console.log("circuit found to be valid series circuit");
