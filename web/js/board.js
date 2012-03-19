@@ -473,7 +473,7 @@ var Node = ScreenObject.extend({
             n1 = uncleared_nodes.pop();
             cleared_nodes.push(n1);
             for (i = 0; i < n1.elements1.length; i++) {
-                if (n1.elements1[i].type == "wires") {
+                if (n1.elements1[i].type == "wire") {
                     n2 = n1.elements1[i].n2;
                     flag = false;
                     for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
@@ -494,7 +494,7 @@ var Node = ScreenObject.extend({
                 }
             }
             for (i = 0; i < self.elements2.length; i++) {
-                if (n1.elements2[i].type == "wires") {
+                if (n1.elements2[i].type == "wire") {
                     n2 = n1.elements2[i].n1;
                     flag = false;
                     for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
@@ -525,7 +525,7 @@ var Wire = ScreenObject.extend({
     init: function(self, board, n1, n2) {
         self._super(board);
         self.n1 = n1;
-        //n1.elements1.push(self)
+        n1.elements1.push(self)
         self.n2 = n2;
         self.notes = [];
 
