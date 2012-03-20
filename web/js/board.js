@@ -305,7 +305,7 @@ var Board = Class.extend({
         }
         self.wires = [];
         for (var i=0; i<boardData.wires.length; i++) {
-            if (boardData.wires[i].type == "line") {
+            if (boardData.wires[i].type == "wire") {
                 self.wires[i] = new Wire(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id]);
             }
             if (boardData.wires[i].type == "resistor") {
@@ -313,22 +313,7 @@ var Board = Class.extend({
             }
             self.wires[i].notes = boardData.wires[i].notes;
         }
-        $('#serial input').val();
-        for (var i=0; i<boardData.nodes.length; i++) {
-            self.nodes[i] = new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
-            self.nodes[i].notes = boardData.nodes[i].notes;
-        }
-        self.wires = [];
-        for (var i=0; i<boardData.wires.length; i++) {
-            if (boardData.wires[i].type == "line") {
-                self.wires[i] = new Wire(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id]);
-            }
-            if (boardData.wires[i].type == "resistor") {
-                self.wires[i] = new Resistor(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
-            }
-            self.wires[i].notes = boardData.wires[i].notes;
-        }
-        $('#serial input').val();
+        $('#serial input').val("");
     }
 });
 
