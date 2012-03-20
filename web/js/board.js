@@ -11,6 +11,9 @@ $(function() {
     new Deserializer(b);
 
     new RemoveTool(b);
+    new Undo(b);
+    new Redo(b);
+    
     new SeriesTool(b);
     new ParallelTool(b);
 //    new DeltaWyeTool(b);
@@ -41,6 +44,9 @@ var Board = Class.extend({
     init: function(self) {
         self.nodes = [];
         self.wires = [];
+	self.undoLog = [];
+	self.curUndo = -1;
+	self.deserializing = false;
 
         self.drag = 0;
         self.drag_target = null;
@@ -280,8 +286,39 @@ var Board = Class.extend({
 
         return {'x': x, 'y': y};
     },
+    
+    undoAdd: function(self) {
+	text = self.serialize(false);
+	self.curUndo++;
+	console.log(self.curUndo);
+	var diff = self.undoLog.length - self.curUndo;
+	for (var i=0; i<diff; i++) {
+	    self.undoLog.pop();
+        }
+	self.undoLog.push(text);
+    },
 
-    serialize: function(self) {
+    undo: function(self) {
+	self.curUndo--;
+	console.log(self.curUndo);
+	console.log(self.undoLog[self.curUndo]);
+	if (self.curUndo < 0) {
+	    self.curUndo = 0;
+	}
+	self.deserialize(self.undoLog[self.curUndo], false);
+    },
+    
+    redo: function(self) {
+	self.curUndo++;
+	console.log(self.curUndo);
+	console.log(self.undoLog[self.curUndo]);
+	if (self.curUndo > (self.undoLog.length-1)) {
+	    self.curUndo = self.undoLog.length-1;
+	}
+	self.deserialize(self.undoLog[self.curUndo], false);
+    },
+    
+    serialize: function(self, full) {
         for (var i=0; i<self.nodes.length; i++) {
             self.nodes[i].id = i;
         }
@@ -290,13 +327,16 @@ var Board = Class.extend({
             self.wires[i].n2_id = self.wires[i].n2.id;
         }
         var keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
+	if (full == true) {
+	    keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes", "undoLog", "curUndo"];
+	}
         var text = JSON.stringify(self, keys);
         console.log(text);
-        $('#serial input').val(text);
+	return text;
     },
 
-    deserialize: function(self) {
-        var text = $('#serial input').val();
+    deserialize: function(self, text, full) {
+	self.deserializing = true;
         var boardData = JSON.parse(text);
         self.nodes = [];
         for (var i=0; i<boardData.nodes.length; i++) {
@@ -313,7 +353,14 @@ var Board = Class.extend({
             }
             self.wires[i].notes = boardData.wires[i].notes;
         }
-        $('#serial input').val("");
+	if (full == true) {
+		self.undoLog = []
+		for (var i=0; i<boardData.undoLog.length; i++) {
+		    self.undoLog[i] = boardData.undoLog[i];
+		}
+		self.curUndo = boardData.curUndo;
+	}
+	self.deserializing = false;
     }
 });
 
@@ -896,6 +943,9 @@ var NodeTool = Tool.extend({
         self._super(e, target);
         var p = self.board.snap_to(e.real_x, e.real_y);
         var n = new Node(self.board, p.x, p.y);
+	if (self.board.deserializing == false) {
+	    self.board.undoAdd();
+	}
     },
 });
 
@@ -957,7 +1007,9 @@ var WireTool = Tool.extend({
         }
         if (!hit) {
             self.temp_line.remove();
-        }
+        } else {
+	    self.board.undoAdd();
+	}
         self.temp_line = null;
         self.temp_end_node = null;
     },
@@ -981,6 +1033,36 @@ var ResistorTool = WireTool.extend({
     },
 });
 
+var Undo = Class.extend({
+    type: "undo",
+
+    init: function(self, board) {
+        self.board = board;
+        self.elem = $('<div class="tool" id="tool_undo">Undo</div>')
+            .appendTo('#tools')
+            .bind('click', function() {
+                console.log('Undoing.');
+		self.board.undo();
+            }
+        );
+    },
+});
+
+var Redo = Class.extend({
+    type: "redo",
+
+    init: function(self, board) {
+        self.board = board;
+        self.elem = $('<div class="tool" id="tool_redo">Redo</div>')
+            .appendTo('#tools')
+            .bind('click', function() {
+                console.log('Redoing.');
+		self.board.redo();
+            }
+        );
+    },
+});
+
 var Serializer = Class.extend({
     type: "serializer",
 
@@ -990,7 +1072,7 @@ var Serializer = Class.extend({
             .appendTo('#serial')
             .bind('click', function() {
                 console.log('Serializing.');
-                self.board.serialize();
+		$('#serial input').val(self.board.serialize(true));
             }
         );
     },
@@ -1005,7 +1087,9 @@ var Deserializer = Class.extend({
             .appendTo('#serial')
             .bind('click', function() {
                 console.log('Deserializing.');
-                self.board.deserialize();
+		var text = $('#serial input').val();
+                self.board.deserialize(text, true);
+		$('#serial input').val("");
             }
         );
     },
