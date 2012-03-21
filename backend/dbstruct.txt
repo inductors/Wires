@@ -1,0 +1,75 @@
+-- phpMyAdmin SQL Dump
+-- version 3.3.10.2
+-- http://www.phpmyadmin.net
+--
+-- Host: localhost
+-- Generation Time: Mar 21, 2012 at 11:31 AM
+-- Server version: 5.0.91
+-- PHP Version: 5.2.6
+
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+
+--
+-- Database: `theinte8_circuits`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `probset`
+--
+
+CREATE TABLE IF NOT EXISTS `probset` (
+  `probID` int(11) NOT NULL auto_increment,
+  `description` text NOT NULL,
+  PRIMARY KEY  (`probID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+--
+-- Dumping data for table `probset`
+--
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `solutions`
+--
+
+CREATE TABLE IF NOT EXISTS `solutions` (
+  `userID` text NOT NULL,
+  `problemID` text NOT NULL,
+  `stepNum` int(11) NOT NULL,
+  `solAttempt` int(11) NOT NULL,
+  `solTime` timestamp NOT NULL default CURRENT_TIMESTAMP,
+  PRIMARY KEY  (`stepNum`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `solutions`
+--
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `userName` text NOT NULL,
+  `userType` set('student','teacher') NOT NULL,
+  `userDate` timestamp NOT NULL default CURRENT_TIMESTAMP,
+  PRIMARY KEY  (`userName`(8))
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='User List';
+
+--
+-- Dumping data for table `users`
+--
+
