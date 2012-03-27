@@ -54,7 +54,7 @@ var Board = Class.extend({
         self.canvas = document.getElementById('board');
         self.ctx = self.canvas.getContext('2d');
 
-        self.snap = false;
+        self.snap = true;
         self.snap_size = 20;
 
         setInterval($.proxy(self.redraw, self), 33);
@@ -67,7 +67,7 @@ var Board = Class.extend({
 
         $('#snap').bind('change', function(e) {
             self.snap = $(this).prop('checked');
-        });
+        }).prop('checked', self.snap);
 
     },
 
