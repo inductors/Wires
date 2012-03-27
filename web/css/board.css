@@ -31,6 +31,14 @@
     display: inline-block;
     margin-left: 8px;
     height: 20px;
+    cursor: pointer;
+}
+
+.tool:hover {
+    background-color: #EEE;
+}
+.tool:active {
+    background-color: #BBD;
 }
 
 .tool.active {
