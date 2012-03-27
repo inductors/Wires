@@ -809,7 +809,7 @@ var MoveTool = Tool.extend({
     init: function(self, board) {
         //self._super(board);
         self.board = board;
-        self.elem = $('<div class="tool icon-arrow" id="tool_arrow">Arrow</div>')
+        self.elem = $('<div class="button icon-arrow" id="tool_arrow">Arrow</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -930,7 +930,7 @@ var NodeTool = Tool.extend({
     init: function(self, board) {
         self._super(board);
 
-        self.elem = $('<div class="tool icon-node" id="tool_node">Nodes</div>')
+        self.elem = $('<div class="button icon-node" id="tool_node">Nodes</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -959,7 +959,7 @@ var WireTool = Tool.extend({
     },
 
     make_elem: function(self) {
-        self.elem = $('<div class="tool icon-wire" id="tool_wire">Wires</div>')
+        self.elem = $('<div class="button icon-wire" id="tool_wire">Wires</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -1024,7 +1024,7 @@ var ResistorTool = WireTool.extend({
     },
 
     make_elem: function(self) {
-        self.elem = $('<div class="tool icon-resistor" id="tool_resistor">Resistors</div>')
+        self.elem = $('<div class="button icon-resistor" id="tool_resistor">Resistors</div>')
             .appendTo('#tools')
             .bind('click', function() {
                 self.board.set_tool(self);
@@ -1038,11 +1038,11 @@ var Undo = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.elem = $('<div class="tool" id="tool_undo">Undo</div>')
-            .appendTo('#tools')
+        self.elem = $('<div class="button" id="tool_undo">Undo</div>')
+            .appendTo('#actions')
             .bind('click', function() {
                 console.log('Undoing.');
-		self.board.undo();
+                self.board.undo();
             }
         );
     },
@@ -1053,11 +1053,11 @@ var Redo = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.elem = $('<div class="tool" id="tool_redo">Redo</div>')
-            .appendTo('#tools')
+        self.elem = $('<div class="button">Redo</div>')
+            .appendTo('#actions')
             .bind('click', function() {
                 console.log('Redoing.');
-		self.board.redo();
+                self.board.redo();
             }
         );
     },
@@ -1068,7 +1068,7 @@ var Serializer = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.elem = $('<div class="tool" id="tool_save">Save</div>')
+        self.elem = $('<div class="button" id="tool_save">Save</div>')
             .appendTo('#serial')
             .bind('click', function() {
                 console.log('Serializing.');
@@ -1083,7 +1083,7 @@ var Deserializer = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.elem = $('<div class="tool" id="tool_load">Load</div>')
+        self.elem = $('<div class="button" id="tool_load">Load</div>')
             .appendTo('#serial')
             .bind('click', function() {
                 console.log('Deserializing.');

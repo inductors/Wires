@@ -4,8 +4,8 @@ function SeriesTool(board) {
 
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_series">Series</div>')
-        .appendTo('#tools')
+    this.elem = $('<div class="button" id="tool_series">Series</div>')
+        .appendTo('#reductions')
         .bind('click', function() {
             series_reduce(board.selected_resistors());
         });
@@ -16,8 +16,8 @@ function ParallelTool(board) {
 
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_parallel">Parallel</div>')
-        .appendTo('#tools')
+    this.elem = $('<div class="button" id="tool_parallel">Parallel</div>')
+        .appendTo('#reductions')
         .bind('click', function() {
             parallel_reduce(board.selected_resistors());
         });
@@ -28,8 +28,8 @@ function RemoveTool(board) {
 
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_remove">Remove</div>')
-        .appendTo('#tools')
+    this.elem = $('<div class="button" id="tool_remove">Remove</div>')
+        .appendTo('#reductions')
         .bind('click', function() {
             resistor_reduce(board.selected_resistors());
         });
@@ -40,8 +40,8 @@ function DeltaWyeTool(board) {
 
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_delta_wye">Delta-Wye</div>')
-        .appendTo('#tools')
+    this.elem = $('<div class="button" id="tool_delta_wye">Delta-Wye</div>')
+        .appendTo('#reductions')
         .bind('click', function() {
             series_reduce(board.selected_resistors());
         });
@@ -52,8 +52,8 @@ function WyeDeltaTool(board) {
 
     var node_tool = this;
 
-    this.elem = $('<div class="tool" id="tool_wye_delta">Wye-Delta</div>')
-        .appendTo('#tools')
+    this.elem = $('<div class="button" id="tool_wye_delta">Wye-Delta</div>')
+        .appendTo('#reductions')
         .bind('click', function() {
             series_reduce(board.selected_resistors());
         });

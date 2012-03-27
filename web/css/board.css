@@ -23,25 +23,33 @@
     padding: 5px;
 }
 
-.tool {
+#tools {
+}
+
+#tools h3 {
+    display: inline;
+}
+
+.button {
     padding: 5px;
     border-radius: 5px;
     border: solid 1px #555;
     background-color: #DDD;
     display: inline-block;
+    margin-bottom: 5px;
     margin-left: 8px;
     height: 20px;
     cursor: pointer;
 }
 
-.tool:hover {
+.button:hover {
     background-color: #EEE;
 }
-.tool:active {
+.button:active {
     background-color: #BBD;
 }
 
-.tool.active {
+.button.active {
     background-color: #BBD;
 }
 
