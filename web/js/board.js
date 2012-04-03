@@ -43,10 +43,10 @@ var Board = Class.extend({
 
     init: function(self) {
         self.nodes = [];
-        self.wires = [];
-	self.undoLog = [];
-	self.curUndo = -1;
-	self.deserializing = false;
+        self.elements = [];
+        self.undoLog = [];
+        self.curUndo = -1;
+        self.deserializing = false;
 
         self.drag = 0;
         self.drag_target = null;
@@ -73,8 +73,8 @@ var Board = Class.extend({
 
     redraw: function(self) {
         self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
-        for (var i=0; i < self.wires.length; i++) {
-            self.wires[i].draw();
+        for (var i=0; i < self.elements.length; i++) {
+            self.elements[i].draw();
         }
         for (var i=0; i < self.nodes.length; i++) {
             self.nodes[i].draw();
@@ -85,8 +85,8 @@ var Board = Class.extend({
         var selected = [];
         var kinds = 0;
 
-        for (var i=0; i<self.wires.length; i++) {
-            var w = self.wires[i];
+        for (var i=0; i<self.elements.length; i++) {
+            var w = self.elements[i];
             if (w.selected) {
                 selected.push(w);
                 kinds |= 1;
@@ -149,8 +149,8 @@ var Board = Class.extend({
         var i;
         var w;
 
-        for (i = 0; i < self.wires.length; i++) {
-            w = self.wires[i];
+        for (i = 0; i < self.elements.length; i++) {
+            w = self.elements[i];
             if (w.selected) {
                 selected.push(w);
             }
@@ -164,8 +164,8 @@ var Board = Class.extend({
         var i;
         var w;
 
-        for (i = 0; i < self.wires.length; i++) {
-            w = self.wires[i];
+        for (i = 0; i < self.elements.length; i++) {
+            w = self.elements[i];
             if (w.selected && (w.type == 'wire')) {
                 selected.push(w);
             }
@@ -179,8 +179,8 @@ var Board = Class.extend({
         var i;
         var w;
 
-        for (i = 0; i < self.wires.length; i++) {
-            w = self.wires[i];
+        for (i = 0; i < self.elements.length; i++) {
+            w = self.elements[i];
             if (w.selected && (w.type == 'resistor')) {
                 selected.push(w);
             }
@@ -205,9 +205,9 @@ var Board = Class.extend({
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
-        for (var i=0; i<self.wires.length; i++) {
-            if (self.wires[i].hit_test(e.real_x, e.real_y)) {
-                self.drag_target = self.wires[i];
+        for (var i=0; i<self.elements.length; i++) {
+            if (self.elements[i].hit_test(e.real_x, e.real_y)) {
+                self.drag_target = self.elements[i];
                 self.drag = 1;
             }
         }
@@ -227,8 +227,8 @@ var Board = Class.extend({
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
-        for (var i=0; i<self.wires.length; i++) {
-            var d = self.wires[i];
+        for (var i=0; i<self.elements.length; i++) {
+            var d = self.elements[i];
             d.hover = d.hit_test(e.real_x, e.real_y);
         }
         for (var i=0; i<self.nodes.length; i++) {
@@ -322,9 +322,9 @@ var Board = Class.extend({
         for (var i=0; i<self.nodes.length; i++) {
             self.nodes[i].id = i;
         }
-        for (var i=0; i<self.wires.length; i++) {
-            self.wires[i].n1_id = self.wires[i].n1.id;
-            self.wires[i].n2_id = self.wires[i].n2.id;
+        for (var i=0; i<self.elements.length; i++) {
+            self.elements[i].n1_id = self.elements[i].n1.id;
+            self.elements[i].n2_id = self.elements[i].n2.id;
         }
         var keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
 	if (full == true) {
@@ -343,15 +343,15 @@ var Board = Class.extend({
             self.nodes[i] = new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
             self.nodes[i].notes = boardData.nodes[i].notes;
         }
-        self.wires = [];
-        for (var i=0; i<boardData.wires.length; i++) {
-            if (boardData.wires[i].type == "wire") {
-                self.wires[i] = new Wire(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id]);
+        self.elements = [];
+        for (var i=0; i<boardData.elements.length; i++) {
+            if (boardData.elements[i].type == "wire") {
+                self.elements[i] = new Wire(self, self.nodes[boardData.elements[i].n1_id], self.nodes[boardData.elements[i].n2_id]);
             }
-            if (boardData.wires[i].type == "resistor") {
-                self.wires[i] = new Resistor(self, self.nodes[boardData.wires[i].n1_id], self.nodes[boardData.wires[i].n2_id], boardData.wires[i].resistance);
+            if (boardData.elements[i].type == "resistor") {
+                self.elements[i] = new Resistor(self, self.nodes[boardData.elements[i].n1_id], self.nodes[boardData.elements[i].n2_id], boardData.elements[i].resistance);
             }
-            self.wires[i].notes = boardData.wires[i].notes;
+            self.elements[i].notes = boardData.elements[i].notes;
         }
 	if (full == true) {
 		self.undoLog = []
@@ -502,7 +502,7 @@ var Wire = ScreenObject.extend({
         n1.elements2.push(self)
         self.notes = [];
 
-        self.board.wires.push(self)
+        self.board.elements.push(self)
         console.log('Wire.init');
     },
 
@@ -561,9 +561,9 @@ var Wire = ScreenObject.extend({
 
     remove: function(self) {
         var index
-        index = self.board.wires.indexOf(self);
+        index = self.board.elements.indexOf(self);
         if (index != -1) {
-            self.board.wires.splice(index, 1); // remove if found
+            self.board.elements.splice(index, 1); // remove if found
         }
         index = self.n1.elements1.indexOf(self);
         if (index != -1) {
@@ -672,8 +672,8 @@ var Resistor = Wire.extend({
                 for (var i=0; i<self.board.nodes.length; i++) {
                     self.board.nodes[i].selected = false;
                 }
-                for (var i=0; i<self.board.wires.length; i++) {
-                    self.board.wires[i].selected = false;
+                for (var i=0; i<self.board.elements.length; i++) {
+                    self.board.elements[i].selected = false;
                 }
                 target.selected = true;
             }
@@ -688,8 +688,8 @@ var Resistor = Wire.extend({
                         it.y += p.y - target.y;
                     }
                 }
-                for (var i=0; i<self.board.wires.length; i++) {
-                    var it = self.board.wires[i];
+                for (var i=0; i<self.board.elements.length; i++) {
+                    var it = self.board.elements[i];
                     if (it.selected) {
                         it.x += p.x - target.x;
                         it.y += p.y - target.y;
@@ -716,10 +716,10 @@ var Resistor = Wire.extend({
                     self.board.nodes[i].y += dy;
                 }
             }
-            for (var i=0; i<self.board.wires.length; i++) {
-                if (self.board.wires[i].selected) {
-                    var n1 = self.board.wires[i].n1;
-                    var n2 = self.board.wires[i].n2;
+            for (var i=0; i<self.board.elements.length; i++) {
+                if (self.board.elements[i].selected) {
+                    var n1 = self.board.elements[i].n1;
+                    var n2 = self.board.elements[i].n2;
                     if (!n1.selected) {
                         n1.x += dx;
                         n1.y += dy;
@@ -775,9 +775,9 @@ var MoveTool = Tool.extend({
                 selected_objs.push(self.board.nodes[i]);
             }
         }
-        for (var i=0; i<self.board.wires.length; i++) {
-            if (self.board.wires[i].selected) {
-                selected_objs.push(self.board.wires[i]);
+        for (var i=0; i<self.board.elements.length; i++) {
+            if (self.board.elements[i].selected) {
+                selected_objs.push(self.board.elements[i]);
             }
         }
         if (target) {
@@ -809,8 +809,8 @@ var MoveTool = Tool.extend({
                 for (var i=0; i<self.board.nodes.length; i++) {
                     self.board.nodes[i].selected = false;
                 }
-                for (var i=0; i<self.board.wires.length; i++) {
-                    self.board.wires[i].selected = false;
+                for (var i=0; i<self.board.elements.length; i++) {
+                    self.board.elements[i].selected = false;
                 }
                 target.selected = true;
             }
@@ -825,8 +825,8 @@ var MoveTool = Tool.extend({
                         it.y += p.y - target.y;
                     }
                 }
-                for (var i=0; i<self.board.wires.length; i++) {
-                    var it = self.board.wires[i];
+                for (var i=0; i<self.board.elements.length; i++) {
+                    var it = self.board.elements[i];
                     if (it.selected) {
                         it.x += p.x - target.x;
                         it.y += p.y - target.y;
@@ -854,10 +854,10 @@ var MoveTool = Tool.extend({
                     self.board.nodes[i].y += dy;
                 }
             }
-            for (var i=0; i<self.board.wires.length; i++) {
-                if (self.board.wires[i].selected) {
-                    var n1 = self.board.wires[i].n1;
-                    var n2 = self.board.wires[i].n2;
+            for (var i=0; i<self.board.elements.length; i++) {
+                if (self.board.elements[i].selected) {
+                    var n1 = self.board.elements[i].n1;
+                    var n2 = self.board.elements[i].n2;
                     if (!n1.selected) {
                         n1.x += dx;
                         n1.y += dy;
