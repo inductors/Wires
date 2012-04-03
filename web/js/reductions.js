@@ -71,12 +71,9 @@ function series_test (resistors) {
 
     uncleared = [];
     for (i = 0; i < resistors.length; i++) {
-        r = resistors[i];
-        uncleared.push(r);
+        uncleared.push(resistors[i]);
     }
 
-    console.log("resistors being validated:");
-    console.log(uncleared.length);
 
     r = uncleared.pop();
     nodes = [r.n1, r.n2];
@@ -87,36 +84,27 @@ function series_test (resistors) {
         while (flag && (uncleared.length > 0)) {
             flag = false;
             connected = n.resistors();
-            console.log("connected resistors:");
-            console.log(connected.length);
             if (connected.length == 2) {
                 for (j = 0; j < connected.length; j++) {
                     r = connected[j];
                     index = uncleared.indexOf(r)
-                    console.log("index of connected resistor:");
-                    console.log(index);
                     if (index != -1) {
-                        console.log("next series resistor found. removing from array.");
                         uncleared.splice(index, 1);
-                        if (n.connected(r.n1)) {
-                            n = r.n1;
-                        } else {
+                        if (n.wired(r.n1)) {
                             n = r.n2;
-                            flag = true;
-                            break;
+                        } else {
+                            n = r.n1;
                         }
+                        flag = true;
+                        break;
                     }
                 }
             }
         }
     }
     if (uncleared.length > 0) {
-        console.log("circuit was not found to be valid series circuit");
-        console.log("resistors not in series circuit:");
-        console.log(uncleared.length);
-        return true;
+        return false;
     } else {
-        console.log("circuit found to be valid series circuit");
         return true;
     }
 }
@@ -158,9 +146,9 @@ function parallel_test (resistors) {
     
     for (i = 1; i < resistors.length; i++) {
         r = resistors[i];
-        if (n.connected(r.n1)) {
+        if (n.wired(r.n1)) {
             uncleared.push(r.n2);
-        } else if (n.connected(r.n2)) {
+        } else if (n.wired(r.n2)) {
             uncleared.push(r.n1);
         } else {
             console.log("circuit was not found to be valid parallel circuit");
@@ -169,7 +157,7 @@ function parallel_test (resistors) {
     }
     for (i = 0; i < uncleared.length; i++) {
         n = uncleared[i];
-        if (! nodes[1].connected(n)) {
+        if (! nodes[1].wired(n)) {
             console.log("circuit was not found to be valid parallel circuit");
             return true;
         }
@@ -250,7 +238,7 @@ function wye_delta_test (resistors) {
         if (n.resistors.length == 3) {
             for (i = 0; i < resistors.length; i++) {
                 r = resistors[i]
-                if ((! r.n1.connected(n)) && (! r.n2.connected)) {
+                if ((! r.n1.wired(n)) && (! r.n2.connected)) {
                     flag = false;
                 }
             }
