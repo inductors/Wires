@@ -499,6 +499,7 @@ var Wire = ScreenObject.extend({
         self.n1 = n1;
         n1.elements1.push(self)
         self.n2 = n2;
+        n1.elements2.push(self)
         self.notes = [];
 
         self.board.wires.push(self)
@@ -559,9 +560,18 @@ var Wire = ScreenObject.extend({
     },
 
     remove: function(self) {
-        var idx = self.board.wires.indexOf(self);
-        if (idx != -1) {
-            self.board.wires.splice(idx, 1); // remove if found
+        var index
+        index = self.board.wires.indexOf(self);
+        if (index != -1) {
+            self.board.wires.splice(index, 1); // remove if found
+        }
+        index = self.n1.elements1.indexOf(self);
+        if (index != -1) {
+            self.n1.elements1.splice(index, 1);
+        }
+        index = self.n2.elements2.indexOf(self);
+        if (index != -1) {
+            self.n2.elements2.splice(index, 1);
         }
         return null;
     },
