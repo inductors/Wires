@@ -126,6 +126,7 @@ function series_reduce (resistors) {
                 s.remove();
             }
         }   
+        r.board.undoAdd();
         return true;
     } else {
         return false;
