@@ -435,59 +435,29 @@ var Node = ScreenObject.extend({
         return self.elements1.length + self.elements2.length;
     },
 
-    connected: function(self, node) {
+    nodes: function(self) {
         var i, j;
-        var flag;
-        var n1, n2;
-        var cleared_nodes = [];
-        var uncleared_nodes = [self];
+        var elements = [];
+        var nodes = [self];
 
-        while (uncleared_nodes.length > 0) {
-            n1 = uncleared_nodes.pop();
-            if (n1 === node) {
-                return true;
-            }
-            cleared_nodes.push(n1);
-            for (i = 0; i < n1.elements1.length; i++) {
-                if (n1.elements1[i].type == "wire") {
-                    n2 = n1.elements1[i].n2;
-                    flag = false;
-                    for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
-                        if (n2 === cleared_nodes[j]) {
-                            flag = true;
-                        }
+        for (i = 0; i < nodes.length; i++) {
+            elements = nodes[i].elements();
+            for (j = 0; j < elements.length; j++) {
+                if (elements[j].type == "wire") {
+                    if (nodes.indexOf(elements[j].n1) == -1) {
+                        nodes.push(elements[j].n1);
                     }
-                    for (j = 0; (j < uncleared_nodes.length && ! flag); j++) {
-                        if (n2 === uncleared_nodes[j]) {
-                            flag = true;
-                        }
-                    }
-                    if (! flag) {
-                        uncleared_nodes.push(n2);
-                    }
-                }
-            }
-            for (i = 0; i < self.elements2.length; i++) {
-                if (n1.elements2[i].type == "wire") {
-                    n2 = n1.elements2[i].n1;
-                    flag = false;
-                    for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
-                        if (n2 === cleared_nodes[j]) {
-                            flag = true;
-                        }
-                    }
-                    for (j = 0; ( j <uncleared_nodes.length && ! flag); j++) {
-                        if (n2 === uncleared_nodes[j]) {
-                            flag = true;
-                        }
-                    }
-                    if (! flag) {
-                        uncleared_nodes.push(n2);
+                    if (nodes.indexOf(elements[j].n2) == -1) {
+                        nodes.push(elements[j].n2);
                     }
                 }
             }
         }
-        return false;
+        return nodes;
+    },
+
+    wired: function(self, node) {
+        return (self.nodes().indexOf(node) != -1);
     },
 
     elements: function(self) {
@@ -496,58 +466,28 @@ var Node = ScreenObject.extend({
 
     resistors: function(self) {
         var i, j;
-        var flag;
-        var n1, n2;
-        var r = [];
-        var cleared_nodes = [];
-        var uncleared_nodes = [self];
-        while (uncleared_nodes.length > 0) {
-            n1 = uncleared_nodes.pop();
-            cleared_nodes.push(n1);
-            for (i = 0; i < n1.elements1.length; i++) {
-                if (n1.elements1[i].type == "wire") {
-                    n2 = n1.elements1[i].n2;
-                    flag = false;
-                    for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
-                        if (n2 === cleared_nodes[j]) {
-                            flag = true;
-                        }
+        var elements = [];
+        var resistors = [];
+        var nodes = [self];
+
+        for (i = 0; i < nodes.length; i++) {
+            elements = nodes[i].elements();
+            for (j = 0; j < elements.length; j++) {
+                if (elements[j].type == "wire") {
+                    if (nodes.indexOf(elements[j].n1) == -1) {
+                        nodes.push(elements[j].n1);
                     }
-                    for (j = 0; (j < uncleared_nodes.length && ! flag); j++) {
-                        if (n2 === uncleared_nodes[j]) {
-                            flag = true;
-                        }
+                    if (nodes.indexOf(elements[j].n2) == -1) {
+                        nodes.push(elements[j].n2);
                     }
-                    if (! flag) {
-                        uncleared_nodes.push(n2);
+                } else if (elements[j].type == "resistor") {
+                    if (resistors.indexOf(elements[j]) == -1) {
+                        resistors.push(elements[j]);
                     }
-                } else if (n1.elements1[i].type == "resistor") {
-                    r.push(n1.elements1[i]);
-                }
-            }
-            for (i = 0; i < self.elements2.length; i++) {
-                if (n1.elements2[i].type == "wire") {
-                    n2 = n1.elements2[i].n1;
-                    flag = false;
-                    for (j = 0; (j < cleared_nodes.length && ! flag); j++) {
-                        if (n2 === cleared_nodes[j]) {
-                            flag = true;
-                        }
-                    }
-                    for (j = 0; (j < uncleared_nodes.length && ! flag); j++) {
-                        if (n2 === uncleared_nodes[j]) {
-                            flag = true;
-                        }
-                    }
-                    if (! flag) {
-                        uncleared_nodes.push(n2);
-                    }
-                } else if (n1.elements2[i].type == "resistor") {
-                    r.push(n1.elements2[i]);
                 }
             }
         }
-        return r;
+        return resistors;
     },
 });
 
