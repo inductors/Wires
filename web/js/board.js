@@ -499,7 +499,7 @@ var Wire = ScreenObject.extend({
         self.n1 = n1;
         n1.elements1.push(self)
         self.n2 = n2;
-        n1.elements2.push(self)
+        n2.elements2.push(self)
         self.notes = [];
 
         self.board.elements.push(self)
