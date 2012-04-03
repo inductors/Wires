@@ -326,9 +326,9 @@ var Board = Class.extend({
             self.elements[i].n1_id = self.elements[i].n1.id;
             self.elements[i].n2_id = self.elements[i].n2.id;
         }
-        var keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
+        var keys = ["id", "nodes", "elements", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
 	if (full == true) {
-	    keys = ["id", "nodes", "wires", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes", "undoLog", "curUndo"];
+	    keys = ["id", "nodes", "elements", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes", "undoLog", "curUndo"];
 	}
         var text = JSON.stringify(self, keys);
         console.log(text);
@@ -491,19 +491,17 @@ var Node = ScreenObject.extend({
     },
 });
 
-var Wire = ScreenObject.extend({
-    type: "wire",
+var ProtoWire = ScreenObject.extend({
+    type: "protowire",
 
     init: function(self, board, n1, n2) {
         self._super(board);
         self.n1 = n1;
-        n1.elements1.push(self)
         self.n2 = n2;
-        n2.elements2.push(self)
         self.notes = [];
 
         self.board.elements.push(self)
-        console.log('Wire.init');
+        console.log('Element.init');
     },
 
     draw: function(self) {
@@ -565,6 +563,25 @@ var Wire = ScreenObject.extend({
         if (index != -1) {
             self.board.elements.splice(index, 1); // remove if found
         }
+        return null;
+    },
+});
+
+var Wire = ProtoWire.extend({
+    type: "wire",
+
+    init: function(self, board, n1, n2) {
+        self._super(board, n1, n2);
+        n1.elements1.push(self);
+        n2.elements2.push(self);
+    },
+
+    remove: function(self) {
+        var index
+        index = self.board.elements.indexOf(self);
+        if (index != -1) {
+            self.board.elements.splice(index, 1); // remove if found
+        }
         index = self.n1.elements1.indexOf(self);
         if (index != -1) {
             self.n1.elements1.splice(index, 1);
@@ -577,8 +594,8 @@ var Wire = ScreenObject.extend({
     },
 });
 
-var Resistor = Wire.extend({
-    type: "resistor",
+var ProtoResistor = ProtoWire.extend({
+    type: "protoresistor",
 
     init: function(self, board, n1, n2, resistance) {
         self._super(board, n1, n2);
@@ -661,6 +678,17 @@ var Resistor = Wire.extend({
 
         ctx.restore();
     },
+});
+
+var Resistor = ProtoResistor.extend({
+    type: "resistor",
+
+    init: function(self, board, n1, n2, resistance) {
+        self._super(board, n1, n2, resistance);
+        n1.elements1.push(self);
+        n2.elements2.push(self);
+    },
+
     dragstart: function(self, e, target) {
         if (target) {
             self.last_drag_x = e.real_x;
@@ -735,6 +763,23 @@ var Resistor = Wire.extend({
             self.last_drag_y += dy;
         }
     },
+
+    remove: function(self) {
+        var index
+        index = self.board.elements.indexOf(self);
+        if (index != -1) {
+            self.board.elements.splice(index, 1); // remove if found
+        }
+        index = self.n1.elements1.indexOf(self);
+        if (index != -1) {
+            self.n1.elements1.splice(index, 1);
+        }
+        index = self.n2.elements2.indexOf(self);
+        if (index != -1) {
+            self.n2.elements2.splice(index, 1);
+        }
+        return null;
+    },
 });
 
 var Tool = Class.extend({
@@ -769,31 +814,22 @@ var MoveTool = Tool.extend({
 
     click: function(self, e, target) {
         self._super(e, target);
-        var selected_objs = [];
-        for (var i=0; i<self.board.nodes.length; i++) {
-            if (self.board.nodes[i].selected) {
-                selected_objs.push(self.board.nodes[i]);
-            }
-        }
-        for (var i=0; i<self.board.elements.length; i++) {
-            if (self.board.elements[i].selected) {
-                selected_objs.push(self.board.elements[i]);
-            }
-        }
+        var i;
+        var selected = self.board.selected();
         if (target) {
             var should_select = !target.selected;
             if (!e.shiftKey) {
-                if (selected_objs.length > 1 && target.selected) {
+                if (selected.length > 1 && target.selected) {
                     should_select = true;
                 }
-                for (var i=0; i<selected_objs.length; i++) {
-                    selected_objs[i].selected = false;
+                for (i = 0; i < selected.length; i++) {
+                    selected[i].selected = false;
                 }
             }
             target.selected = should_select;
         } else {
-            for (var i=0; i<selected_objs.length; i++) {
-                selected_objs[i].selected = false;
+            for (i = 0; i < selected.length; i++) {
+                selected[i].selected = false;
             }
         }
     },
@@ -893,9 +929,9 @@ var NodeTool = Tool.extend({
         self._super(e, target);
         var p = self.board.snap_to(e.real_x, e.real_y);
         var n = new Node(self.board, p.x, p.y);
-	if (self.board.deserializing == false) {
-	    self.board.undoAdd();
-	}
+        if (self.board.deserializing == false) {
+            self.board.undoAdd();
+        }
     },
 });
 
@@ -905,7 +941,8 @@ var WireTool = Tool.extend({
     init: function(self, board) {
         self._super(board);
         self.make_elem();
-        self.line_kind = Wire;
+        self.line_proto = ProtoWire;
+        self.line_type = Wire;
     },
 
     make_elem: function(self) {
@@ -928,7 +965,7 @@ var WireTool = Tool.extend({
         }
         if (target && target.type == "node") {
             self.temp_end_node = {'x': e.real_x, 'y': e.real_y};
-            self.temp_line = new self.line_kind(self.board, target, self.temp_end_node, 1);
+            self.temp_line = new self.line_proto(self.board, target, self.temp_end_node, 1);
         }
     },
 
@@ -948,8 +985,8 @@ var WireTool = Tool.extend({
             var it = self.board.nodes[i];
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
                 if (it != self.temp_line.n1) {
-                    self.temp_line.n2 = it;
-                    it.elements2.push(this.temp_line);
+                    var tmp = new self.line_type(self.board, self.temp_line.n1, it, 1);
+                    self.temp_line.remove();
                     hit = true;
                 }
                 break;
@@ -958,8 +995,8 @@ var WireTool = Tool.extend({
         if (!hit) {
             self.temp_line.remove();
         } else {
-	    self.board.undoAdd();
-	}
+	        self.board.undoAdd();
+	    }
         self.temp_line = null;
         self.temp_end_node = null;
     },
@@ -970,7 +1007,8 @@ var ResistorTool = WireTool.extend({
 
     init: function(self, board) {
         self._super(board);
-        self.line_kind = Resistor;
+        self.line_proto = ProtoResistor;
+        self.line_type = Resistor;
     },
 
     make_elem: function(self) {
