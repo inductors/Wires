@@ -101,31 +101,151 @@ function series_test (resistors) {
                 }
             }
         }
+        nodes[i] = n; // commit the end node back to the nodes array
     }
     if (uncleared.length > 0) {
-        return false;
+        return undef;
     } else {
-        return true;
+        return nodes;
     }
+}
+
+function series_collision (nodes, resistors) {
+    var i; // iterator
+    var e; // element
+    var elementsi = []; // element array
+    var nodes_in_circuit = [], all_nodes = []; // node array
+    var lx, ly, rx, ry, distance, index; // integers
+    
+    // find all nodes connected to an element in resistors
+    for (i = 0; i < resistors.length; i++) {
+        e = resistors[i];
+        if (nodes_in_circuit.indexOf(e.n1) == -1) {
+            nodes_in_circuit.push(e.n1);
+        }
+        if (nodes_in_circuit.indexOf(e.n2) == -1) {
+            nodes_in_circuit.push(e.n2);
+        }
+    }
+
+    //find any nodes that collide with the line from nodes[0] to nodes[1]
+    all_nodes = nodes[0].board.nodes;
+    for (i = 0; i < all_nodes.length; i++) {
+        n = all_nodes[i];
+        index = nodes_in_circuit.indexOf(n);
+        if (index == -1) {
+            // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
+            lx = nodes[1].x - nodes[0].x;
+            ly = nodes[1].y - nodes[0].y;
+            rx = nodes[0].x - n.x;
+            ry = nodes[0].y - n.y;
+
+            distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
+            if (distance < 5) {
+                return true;
+            }
+        }
+    }
+
+    elements = nodes[0].elements();
+    for (i = 0; i < elements.length; i++){
+        e = elements[i];
+        if (((e.n1 === nodes[0]) && (e.n2 === nodes[1])) ||
+                ((e.n2 === nodes[0]) && (e.n1 === nodes[1]))) {
+            if (resistors.indexOf(e) == -1) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // returns true if valid and successfully transformed, and false if invalid or unsuccessful
 function series_reduce (resistors) {
     console.log("series_reduce");
-    var i; // iterator
+    var i, j; // iterator
+    var flag; // boolean
     var r, s; // resistor
+    var res = []; // resistor array
+    var n0, n1, n2; // nodes
+    var nodes = []; // nodes array
 
-    if (series_test(resistors)) {
-        r = resistors[0];
-        for (i = 1; i < resistors.length; i++) {
-            s = resistors[i]
-            if (s.type == 'resistor') {
-                r.resistance += s.resistance;
-                new Wire(s.board, s.n1, s.n2)
-//                s.n2.elements2.push(new Wire(s.board, s.n1, s.n2));
-                s.remove();
+    nodes = series_test(resistors);
+    if (nodes) {
+        if (series_collision(nodes, resistors)) {
+            n0 = nodes[0];
+            n2 = nodes[1];
+            res = n0.resistors();
+            for (j = 0; j < res.length; j ++) {
+                if (resistors.indexOf(res[j]) != -1) {
+                    if (res[j].n1 === n0) {
+                        n1 = res[j].n2;
+                    } else {
+                        n1 = res[j].n1;
+                    }
+                    break;
+                }
             }
-        }   
+            flag = series_collision([n1, n2], resistors);
+            if (flag) {
+                res = n2.resistors();
+                for (j = 0; j < res.length; j ++) {
+                    if (resistors.indexOf(res[j]) != -1) {
+                        if (res[j].n1 === n2) {
+                            n1 = res[j].n2;
+                        } else {
+                            n1 = res[j].n1;
+                        }
+                        break;
+                    }
+                }
+                flag = series_collision([n0, n1], resistors);
+            }
+            if (flag) {
+                r = resistors[0];
+                for (i = 1; i < resistors.length; i++) {
+                    s = resistors[i];
+                    if (s.type == 'resistor') {
+                        r.resistance += s.resistance;
+                        new Wire(s.board, s.n1, s.n2);
+                        s.remove();
+                    }
+                }
+            } else {
+                nodes.push(n1);
+                r = new Resistor(resistors[0].board, n0, n1, 0);
+                for (i = 0; i < resistors.length; i++) {
+                    s = resistors[i];
+                    if (s.type == 'resistor') {
+                        r.resistance += s.resistance;
+                    }
+                    s.remove();
+                    if (nodes.indexOf(s.n1) == -1) {
+                        s.n1.remove();
+                    }
+                    if (nodes.indexOf(s.n2) == -1) {
+                        s.n2.remove();
+                    }
+                }
+                new Wire(resistors[0].board, n1, n2);
+            }
+        } else {
+            r = new Resistor(resistors[0].board, nodes[0], nodes[1], 0);
+            for (i = 0; i < resistors.length; i++) {
+                s = resistors[i];
+                if (s.type == 'resistor') {
+                    r.resistance += s.resistance;
+                }
+                s.remove();
+                if (nodes.indexOf(s.n1) == -1) {
+                    s.n1.remove();
+                }
+                if (nodes.indexOf(s.n2) == -1) {
+                    s.n2.remove();
+                }
+            }
+        }
         r.board.undoAdd();
         return true;
     } else {
