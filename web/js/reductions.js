@@ -63,8 +63,8 @@ function WyeDeltaTool(board) {
 function series_test (resistors) {
     console.log("series_test");
     var i, j; // iterators
-    var nodes; // node array
-    var connected, uncleared; // resistor array
+    var nodes = []; // node array
+    var connected = [], uncleared = []; // resistor array
     var r; // resistor
     var n; // node
     var flag; // boolean
@@ -137,7 +137,7 @@ function series_reduce (resistors) {
 function parallel_test (resistors) {
     console.log("parallel_test");
     var i; // iterator
-    var nodes, uncleared; // node array
+    var nodes = [], uncleared = []; // node array
     var n; // node
     var r; // resistor
 
@@ -221,7 +221,7 @@ function delta_wye_reduce (resistors) {
 function wye_delta_test (resistors) {
     console.log("wye_delta_test");
     var i, j; // iterators
-    var nodes; // node array
+    var nodes = []; // node array
     var n; // node
     var r; // resistor
     var flag; // boolean
