@@ -576,7 +576,7 @@ var ProtoWire = ScreenObject.extend({
 
         // outside bounds?
         if (x > right || x < left || y > bottom || y < top) {
-            //return false;
+            return false;
         }
 
         // Now do an actually line collision check.
@@ -852,20 +852,13 @@ var MoveTool = Tool.extend({
 
     click: function(self, e, target) {
         self._super(e, target);
-        var i;
-        var selected = self.board.selected();
+
         if (target) {
-            var should_select = !target.selected;
-            if (!e.shiftKey) {
-                if (selected.length > 1 && target.selected) {
-                    should_select = true;
-                }
-                for (i = 0; i < selected.length; i++) {
-                    selected[i].selected = false;
-                }
-            }
-            target.selected = should_select;
+            // toggle
+            target.selected ^= true;
         } else {
+            // deselect
+            var selected = self.board.selected();
             for (i = 0; i < selected.length; i++) {
                 selected[i].selected = false;
             }
