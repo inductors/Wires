@@ -553,16 +553,46 @@ var ProtoWire = ScreenObject.extend({
     },
 
     hit_test: function(self, x, y) {
+        var fuzzy_r = 7;
+        // Find bounding box.
+        var left = self.n1.x;
+        var right = self.n2.x;
+        var top = self.n1.y;
+        var bottom = self.n2.y;
+        if (left > right) {
+            var tmp = right;
+            right = left;
+            left = tmp;
+        }
+        if (top > bottom) {
+            var tmp = top;
+            top = bottom;
+            bottom = tmp;
+        }
+        left -= fuzzy_r;
+        right += fuzzy_r;
+        top -= fuzzy_r;
+        bottom += fuzzy_r;
+
+        // outside bounds?
+        if (x > right || x < left || y > bottom || y < top) {
+            //return false;
+        }
+
+        // Now do an actually line collision check.
         // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
+        // length
         var lx = self.n2.x - self.n1.x;
         var ly = self.n2.y - self.n1.y;
-
+        // dist from n1
         var rx = self.n1.x - x;
         var ry = self.n1.y - y;
 
-        var distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
+        var distance = ((lx * ry) - (rx * ly)) / Math.sqrt(lx * lx + ly * ly);
+        // This makes it work, for some reason. Wat.
+        distance = Math.abs(distance + 3);
 
-        return distance < 5;
+        return distance < fuzzy_r;
     },
 
     remove: function(self) {
