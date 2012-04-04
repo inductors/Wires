@@ -489,6 +489,14 @@ var Node = ScreenObject.extend({
         }
         return resistors;
     },
+
+    remove: function(self) {
+        var index
+        index = self.board.nodes.indexOf(self);
+        if (index != -1) {
+            self.board.nodes.splice(index, 1); // remove if found
+        }
+    },
 });
 
 var ProtoWire = ScreenObject.extend({
