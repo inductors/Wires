@@ -82,47 +82,7 @@ var Board = Class.extend({
     },
 
     ui: function(self) {
-        var selected = [];
-        var kinds = 0;
-
-        for (var i=0; i<self.elements.length; i++) {
-            var w = self.elements[i];
-            if (w.selected) {
-                selected.push(w);
-                kinds |= 1;
-            }
-        }
-        for (var i=0; i<self.nodes.length; i++) {
-            var n = self.nodes[i];
-            if (n.selected) {
-                selected.push(n);
-                kinds |= 2;
-            }
-        }
-        output = '';
-        if (selected.length > 0) {
-            if (selected.length == 1) {
-                output += ('<p>' + selected.length + " item selected.</p>");
-            } else {
-                output += ('<p>' + selected.length + " items selected.</p>");
-            }
-
-            if (kinds == 1) {
-                // All wires
-                output += '<ul>'
-                for (var i=0; i<selected.length; i++) {
-                    output += '<li>Resistance: ' + selected[i].resistance + '</li>';
-                }
-                output += '</ul>'
-            } else if (kinds == 2) {
-                // All nodes
-            } else {
-                // Mixed
-            }
-        } else {
-            output += '<p>None</p>';
-        }
-        $('#selectedinfo').html(output);
+        // Is this even needed anymore?
     },
 
     selected: function(self) {
@@ -198,6 +158,7 @@ var Board = Class.extend({
     },
 
     mousedown: function(self, e) {
+        console.log('mousedown');
         if (!self.cur_tool) {
             console.log("No tool selected. self.cur_tool=" + self.cur_tool)
             return;
@@ -369,7 +330,21 @@ var ScreenObject = Class.extend({
 
     init: function(self, board) {
         self.board = board;
+        self.__defineSetter__('selected', self._set_selected);
+        self.__defineGetter__('selected', self._get_selected);
+
+        self.old_selected = false;
+        self.selected = false;
+        self.widget_elem = null;
     },
+
+    _get_selected: function (self) {
+        return self._selected;
+    },
+    _set_selected: function (self, val) {
+        self.old_selected = self._selected;
+        self._selected = val;
+    }
 });
 
 var Node = ScreenObject.extend({
@@ -382,10 +357,20 @@ var Node = ScreenObject.extend({
         self.r = 5;
         self.elements1 = [];
         self.elements2 = [];
-        self.selected = false;
         self.hover = false;
 
         self.board.nodes.push(self);
+    },
+
+    _set_selected: function (self, val) {
+        self._super(val);
+        if (self.selected && !self.old_selected) {
+            self.widget_elem = $('<li>Node</li>').appendTo('#selectedinfo');
+        } else if (!self.selected && self.old_selected) {
+            if (self.widget_elem) {
+                self.widget_elem.remove();
+            }
+        }
     },
 
     draw: function(self) {
@@ -648,6 +633,17 @@ var Wire = ProtoWire.extend({
         n2.elements2.push(self);
     },
 
+    _set_selected: function (self, val) {
+        self._super(val);
+        if (self.selected && !self.old_selected) {
+            self.widget_elem = $('<li>Wire</li>').appendTo('#selectedinfo');
+        } else if (!self.selected && self.old_selected) {
+            if (self.widget_elem) {
+                self.widget_elem.remove();
+            }
+        }
+    },
+
     remove: function(self) {
         var index
 
@@ -771,6 +767,25 @@ var Resistor = ProtoResistor.extend({
         n1.elements1.push(self);
         n2.elements2.push(self);
     },
+    _set_selected: function (self, val) {
+        self._super(val);
+        if (self.selected && !self.old_selected) {
+            self.widget_elem = $('<li></li>').appendTo('#selectedinfo');
+            $('<label>Resistance</label> <input type="text" value="{0}" size="1" />'.format(self.resistance))
+                .bind('change', function (e) {
+                    console.log('Changing resistance with ');
+                    console.log(this);
+                    self.resistance = parseFloat($(this).val());
+                })
+                .appendTo(self.widget_elem)
+
+        } else if (!self.selected && self.old_selected) {
+            if (self.widget_elem) {
+                self.widget_elem.remove();
+            }
+        }
+    },
+
 
     dragstart: function(self, e, target) {
         if (target) {
