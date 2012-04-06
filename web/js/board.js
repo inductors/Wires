@@ -12,7 +12,7 @@ $(function() {
 
     new Undo(b);
     new Redo(b);
-    
+
     new SeriesReduction(b);
     new ParallelReduction(b);
     new RemoveReduction(b);
@@ -544,8 +544,8 @@ var ProtoWire = ScreenObject.extend({
         }
         text_x += Math.abs(per_line / 2);
         text_y += per_line / 2;
-        for (var key in self.notes) {
-            ctx.fillText(self.notes[key], text_x, text_y);
+        for (var i=0; i<self.notes.length; i++) {
+            ctx.fillText(self.notes[i], text_x, text_y);
             text_y += per_line;
         }
 
@@ -669,7 +669,19 @@ var ProtoResistor = ProtoWire.extend({
 
     init: function(self, board, n1, n2, resistance) {
         self._super(board, n1, n2);
+
+        self.__defineGetter__('resistance', self._get_resistance);
+        self.__defineSetter__('resistance', self._set_resistance);
+
         self.resistance = resistance;
+    },
+
+    _get_resistance: function (self) {
+        return self._resistance;
+    },
+    _set_resistance: function (self, r) {
+        self._resistance = r;
+        self.notes[0] = "{0}Ω".format(r);
     },
 
     draw: function(self) {
@@ -741,10 +753,10 @@ var ProtoResistor = ProtoWire.extend({
         }
         text_x += Math.abs(per_line / 2);
         text_y += per_line / 2;
-        /*for (var i=0; i<self.notes.length; i++) {
+        for (var i=0; i<self.notes.length; i++) {
             ctx.fillText(self.notes[i], text_x, text_y);
             text_y += per_line;
-        }*/
+        }
 
         ctx.restore();
     },
@@ -1048,7 +1060,7 @@ var WireTool = Tool.extend({
             var it = self.board.nodes[i];
             if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
                 if (it != self.temp_line.n1) {
-                    var tmp = new self.line_type(self.board, self.temp_line.n1, it, 1);
+                    new self.line_type(self.board, self.temp_line.n1, it, 1);
                     self.temp_line.remove();
                     hit = true;
                 }
