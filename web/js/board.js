@@ -516,6 +516,12 @@ var ProtoWire = ScreenObject.extend({
         ctx.closePath();
         ctx.stroke();
 
+        self.draw_notes(ctx);
+
+        ctx.restore();
+    },
+
+    draw_notes: function (self, ctx) {
         var text_x = (self.n1.x + self.n2.x) / 2;
         var text_y = (self.n1.y + self.n2.y) / 2;
         if (self.n1.x == self.n2.x) {
@@ -526,17 +532,17 @@ var ProtoWire = ScreenObject.extend({
 
         if (slope > 0) {
             var per_line = -14;
+            text_x += Math.abs(per_line / 2);
+            text_y += per_line / 2;
         } else {
             var per_line = 14;
+            text_x += Math.abs(per_line / 2);
+            text_y += per_line;
         }
-        text_x += Math.abs(per_line / 2);
-        text_y += per_line / 2;
         for (var i=0; i<self.notes.length; i++) {
             ctx.fillText(self.notes[i], text_x, text_y);
             text_y += per_line;
         }
-
-        ctx.restore();
     },
 
     hit_test: function(self, x, y) {
@@ -741,25 +747,7 @@ var ProtoResistor = ProtoWire.extend({
         ctx.lineTo(self.n2.x, self.n2.y);
         ctx.stroke();
 
-        var text_x = (self.n1.x + self.n2.x) / 2;
-        var text_y = (self.n1.y + self.n2.y) / 2;
-        if (self.n1.x == self.n2.x) {
-            var slope = NaN;
-        } else {
-            var slope = (self.n1.y - self.n2.y) / (self.n1.x - self.n2.x);
-        }
-
-        if (slope > 0) {
-            var per_line = -14;
-        } else {
-            var per_line = 14;
-        }
-        text_x += Math.abs(per_line / 2);
-        text_y += per_line / 2;
-        for (var i=0; i<self.notes.length; i++) {
-            ctx.fillText(self.notes[i], text_x, text_y);
-            text_y += per_line;
-        }
+        self.draw_notes(ctx);
 
         ctx.restore();
     },
