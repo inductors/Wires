@@ -620,6 +620,9 @@ var ProtoWire = ScreenObject.extend({
         if (index != -1) {
             self.board.elements.splice(index, 1); // remove if found
         }
+        if (self.widget_elem) {
+            self.widget_elem.remove();
+        }
         return null;
     },
 });
@@ -679,6 +682,9 @@ var ProtoResistor = ProtoWire.extend({
     _set_resistance: function (self, r) {
         self._resistance = r;
         self.notes[0] = "{0}Ω".format(r);
+        if (self.widget_elem) {
+            self.widget_elem.children('input').val(self._resistance);
+        }
     },
 
     draw: function(self) {
@@ -767,6 +773,7 @@ var Resistor = ProtoResistor.extend({
         n1.elements1.push(self);
         n2.elements2.push(self);
     },
+
     _set_selected: function (self, val) {
         self._super(val);
         if (self.selected && !self.old_selected) {
