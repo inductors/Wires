@@ -650,10 +650,9 @@ var Wire = ProtoWire.extend({
 
     remove: function(self) {
         var index
-        index = self.board.elements.indexOf(self);
-        if (index != -1) {
-            self.board.elements.splice(index, 1); // remove if found
-        }
+
+        self._super();
+
         index = self.n1.elements1.indexOf(self);
         if (index != -1) {
             self.n1.elements1.splice(index, 1);
@@ -850,10 +849,9 @@ var Resistor = ProtoResistor.extend({
 
     remove: function(self) {
         var index
-        index = self.board.elements.indexOf(self);
-        if (index != -1) {
-            self.board.elements.splice(index, 1); // remove if found
-        }
+
+        self._super();
+
         index = self.n1.elements1.indexOf(self);
         if (index != -1) {
             self.n1.elements1.splice(index, 1);
