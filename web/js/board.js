@@ -508,7 +508,9 @@ var ProtoWire = ScreenObject.extend({
         self.n2 = n2;
         self.notes = [];
 
-        self.board.elements.push(self)
+        if (board) {
+            self.board.elements.push(self);
+        }
         console.log('Element.init');
     },
 

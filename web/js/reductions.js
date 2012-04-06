@@ -129,7 +129,7 @@ var SeriesReduction = Reduction.extend({
             nodes[i] = n; // commit the end node back to the nodes array
         }
         if (uncleared.length > 0) {
-            return undef;
+            return undefined;
         } else {
             return nodes;
         }
@@ -339,7 +339,7 @@ function prettify_collision(a, b, ignore_elements) {
     var n; // node
     var board_elements = []; // element array
     var nodes = [], ignore_nodes = [], board_nodes = []; // node array
-    var lx, ly, rx, ry, distance, index; // integers
+    var index; // integers
     console.log("prettify_collision");
     
     // find all nodes connected to an element in elements
@@ -358,14 +358,7 @@ function prettify_collision(a, b, ignore_elements) {
     for (i = 0; i < board_nodes.length; i++) {
         n = board_nodes[i];
         if (ignore_nodes.indexOf(n) == -1) {
-            // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
-            lx = b.x - a.x;
-            ly = b.y - a.y;
-            rx = a.x - n.x;
-            ry = a.y - n.y;
-
-            distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
-            if (distance < 5) {
+            if ((new ProtoWire(undefined, a, b)).hit_test(n.x, n.y)) {
                 console.log("node collision detected");
                 return true;
             }
@@ -399,7 +392,7 @@ function prettify_collision(a, b, ignore_elements) {
 */
 function prettify_resistor(resistor) {
     var i, j; // iterator
-    var flag; // boolean
+    var r = false, flag; // boolean
     var n; // node
     var nodes = []; // node array
     var e; // element
@@ -409,7 +402,7 @@ function prettify_resistor(resistor) {
     nodes = resistor.nodes();
     for (i = 0; i < nodes.length; i++) {
         n = nodes[i];
-        prettify_trim_wire(n);
+        r &= prettify_trim_wire(n);
 
         e = resistor;
         while (true) {
@@ -428,6 +421,7 @@ function prettify_resistor(resistor) {
                             } else {
                                 n = e.n1;
                             }
+                            break;
                         }
                     }
                 }
@@ -496,14 +490,13 @@ function prettify_resistor(resistor) {
                     }
                     
                     if ((reduction_elements[0].length == 0) && (reduction_elements[1].length == 0)) {
-                        return false;
+                        return r;
                     }
                 }
             }
         }
     }
 
-    resistor.selected = true;
     resistor.n1_migrate(nodes[0]);
     resistor.n2_migrate(nodes[1]);
 
@@ -520,6 +513,8 @@ function prettify_resistor(resistor) {
             }
         }
     }
+
+    return true;
 }
 
 /*
@@ -557,8 +552,24 @@ function prettify_wye(resistors) {
     pretty-fying occured:
         true
 */
-function prettify_trim_wire(n) {
+function prettify_trim_wire(node) {
     var i; // iterator
+    var nodes = []; // node array
 
-    
+    nodes = node.nodes();
+
+    for (i = 0; i < nodes.length; i++) {
+        n = nodes[i];
+        elements = n.elements();
+        while ((elements.length == 1) && (elements[0].type == "wire")) {
+            elements[0].remove();
+            n.remove();
+            if (n === elements[0].n1) {
+                n = elements[0].n2;
+            } else {
+                n = elements[0].n1;
+            }
+            elements = n.elements();
+        }
+    }
 }
