@@ -10,14 +10,14 @@ $(function() {
     new Serializer(b);
     new Deserializer(b);
 
-    new RemoveTool(b);
     new Undo(b);
     new Redo(b);
     
-    new SeriesTool(b);
-    new ParallelTool(b);
-//    new DeltaWyeTool(b);
-//    new WyeDeltaTool(b);
+    new SeriesReduction(b);
+    new ParallelReduction(b);
+    new RemoveReduction(b);
+    new DeltaWyeReduction(b);
+    new WyeDeltaReduction(b);
 
     b.set_tool(t);
 });
@@ -593,6 +593,38 @@ var ProtoWire = ScreenObject.extend({
         distance = Math.abs(distance + 3);
 
         return distance < fuzzy_r;
+    },
+
+    nodes: function(self) {
+        return [self.n1, self.n2];
+    },
+
+    // reassociate this element from the current n1 to n
+    n1_migrate: function(self, n) {
+        var index
+        if (self.n1.elements1) {
+            index = self.n1.elements1.indexOf(self);
+            if (index != -1) {
+                self.n1.elements1.splice(index, 1);
+            }
+        }
+
+        n.elements1.push(self);
+        self.n1 = n;
+    },
+
+    // reassociate this element from the current n2 to n
+    n2_migrate: function(self, n) {
+        var index
+        if (self.n2.elements2) {
+            index = self.n2.elements2.indexOf(self);
+            if (index != -1) {
+                self.n2.elements2.splice(index, 1);
+            }
+        }
+
+        n.elements2.push(self);
+        self.n2 = n;
     },
 
     remove: function(self) {

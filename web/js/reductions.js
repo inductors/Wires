@@ -1,386 +1,564 @@
-function SeriesTool(board) {
-    this.type = 'series_tool';
-    this.board = board;
+var Reduction = Class.extend({
+    type: "reduction",
+    name: "Reduce",
 
-    var node_tool = this;
+    init: function(self, board) {
+        self.board = board;
+        self.make_elem();
+    },
 
-    this.elem = $('<div class="button" id="tool_series">Series</div>')
-        .appendTo('#reductions')
-        .bind('click', function() {
-            series_reduce(board.selected_resistors());
-        });
-}
-function ParallelTool(board) {
-    this.type = 'parallel_tool';
-    this.board = board;
-
-    var node_tool = this;
-
-    this.elem = $('<div class="button" id="tool_parallel">Parallel</div>')
-        .appendTo('#reductions')
-        .bind('click', function() {
-            parallel_reduce(board.selected_resistors());
-        });
-}
-function RemoveTool(board) {
-    this.type = 'remove_tool';
-    this.board = board;
-
-    var node_tool = this;
-
-    this.elem = $('<div class="button" id="tool_remove">Remove</div>')
-        .appendTo('#reductions')
-        .bind('click', function() {
-            resistor_reduce(board.selected_resistors());
-        });
-}
-function DeltaWyeTool(board) {
-    this.type = 'delta_wye__tool';
-    this.board = board;
-
-    var node_tool = this;
-
-    this.elem = $('<div class="button" id="tool_delta_wye">Delta-Wye</div>')
-        .appendTo('#reductions')
-        .bind('click', function() {
-            series_reduce(board.selected_resistors());
-        });
-}
-function WyeDeltaTool(board) {
-    this.type = 'wye_delta_tool';
-    this.board = board;
-
-    var node_tool = this;
-
-    this.elem = $('<div class="button" id="tool_wye_delta">Wye-Delta</div>')
-        .appendTo('#reductions')
-        .bind('click', function() {
-            series_reduce(board.selected_resistors());
-        });
-}
-
-// returns true if valid, false if invalid
-function series_test (resistors) {
-    console.log("series_test");
-    var i, j; // iterators
-    var nodes = []; // node array
-    var connected = [], uncleared = []; // resistor array
-    var r; // resistor
-    var n; // node
-    var flag; // boolean
-
-    uncleared = [];
-    for (i = 0; i < resistors.length; i++) {
-        uncleared.push(resistors[i]);
-    }
-
-
-    r = uncleared.pop();
-    nodes = [r.n1, r.n2];
-
-    for (i = 0; i < nodes.length; i++) {
-        n = nodes[i];
-        flag = true;
-        while (flag && (uncleared.length > 0)) {
-            flag = false;
-            connected = n.resistors();
-            if (connected.length == 2) {
-                for (j = 0; j < connected.length; j++) {
-                    r = connected[j];
-                    index = uncleared.indexOf(r)
-                    if (index != -1) {
-                        uncleared.splice(index, 1);
-                        if (n.wired(r.n1)) {
-                            n = r.n2;
-                        } else {
-                            n = r.n1;
-                        }
-                        flag = true;
-                        break;
-                    }
-                }
-            }
-        }
-        nodes[i] = n; // commit the end node back to the nodes array
-    }
-    if (uncleared.length > 0) {
-        return undef;
-    } else {
-        return nodes;
-    }
-}
-
-function series_collision (nodes, resistors) {
-    var i; // iterator
-    var e; // element
-    var elementsi = []; // element array
-    var nodes_in_circuit = [], all_nodes = []; // node array
-    var lx, ly, rx, ry, distance, index; // integers
+    //  @always:
+    //      add a button to the reduction section for the given type of reduction
+    make_elem: function(self) {
+        self.elem = $('<div class="button" id="tool_series">'.concat(self.name.concat('</div>')))
+            .appendTo('#reductions')
+            .bind('click', function() {
+                self.reduce(self.board.selected_resistors());
+            });
+    },
     
-    // find all nodes connected to an element in resistors
-    for (i = 0; i < resistors.length; i++) {
-        e = resistors[i];
-        if (nodes_in_circuit.indexOf(e.n1) == -1) {
-            nodes_in_circuit.push(e.n1);
-        }
-        if (nodes_in_circuit.indexOf(e.n2) == -1) {
-            nodes_in_circuit.push(e.n2);
-        }
-    }
+    /*
+    @always:
+        logs the function call to the console
+    @args:
+        resistors: array of resistors to attempt to apply the reduction to    
+    @return:
+        invalid reduction:
+            undef
+        valid reduction:
+            nodes[] : an array of edge nodes to build the new graph on
+    */
+    validate: function(self, resistors) {
+        console.log(self.type.concat(" validate"));
+    },
 
-    //find any nodes that collide with the line from nodes[0] to nodes[1]
-    all_nodes = nodes[0].board.nodes;
-    for (i = 0; i < all_nodes.length; i++) {
-        n = all_nodes[i];
-        index = nodes_in_circuit.indexOf(n);
-        if (index == -1) {
-            // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
-            lx = nodes[1].x - nodes[0].x;
-            ly = nodes[1].y - nodes[0].y;
-            rx = nodes[0].x - n.x;
-            ry = nodes[0].y - n.y;
+    /*
+    @always:
+        logs the funciton call to the console
+        pushes reduction to action stack
+    @args:
+        resistors: array of resistors to attempt to apply the reduction to    
+    @return:
+        reduction failed:
+            false
+        reduction succeeded:
+            true
+    */
+    reduce: function(self, resistors) {
+        console.log(self.type.concat(" reduce"));
+    },
+});
 
-            distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
-            if (distance < 5) {
-                return true;
-            }
-        }
-    }
+// tool for series reductions
+var SeriesReduction = Reduction.extend({
+    type: "series-reduction",
+    name: "Series",
 
-    elements = nodes[0].elements();
-    for (i = 0; i < elements.length; i++){
-        e = elements[i];
-        if (((e.n1 === nodes[0]) && (e.n2 === nodes[1])) ||
-                ((e.n2 === nodes[0]) && (e.n1 === nodes[1]))) {
-            if (resistors.indexOf(e) == -1) {
-                return true;
-            }
-        }
-    }
+    init: function(self, board) {
+        self._super(board);
+    },
 
-    return false;
-}
+    reduce: function series_reduce (self, resistors) {
+        var i, j; // iterator
+        var flag; // boolean
+        var r, s; // resistor
+        var res = []; // resistor array
+        var n0, n1, n2; // nodes
+        var nodes = []; // nodes array
 
-// returns true if valid and successfully transformed, and false if invalid or unsuccessful
-function series_reduce (resistors) {
-    console.log("series_reduce");
-    var i, j; // iterator
-    var flag; // boolean
-    var r, s; // resistor
-    var res = []; // resistor array
-    var n0, n1, n2; // nodes
-    var nodes = []; // nodes array
+        self._super(resistors);
 
-    nodes = series_test(resistors);
-    if (nodes) {
-        if (series_collision(nodes, resistors)) {
-            n0 = nodes[0];
-            n2 = nodes[1];
-            res = n0.resistors();
-            for (j = 0; j < res.length; j ++) {
-                if (resistors.indexOf(res[j]) != -1) {
-                    if (res[j].n1 === n0) {
-                        n1 = res[j].n2;
-                    } else {
-                        n1 = res[j].n1;
-                    }
-                    break;
-                }
-            }
-            flag = series_collision([n1, n2], resistors);
-            if (flag) {
-                res = n2.resistors();
-                for (j = 0; j < res.length; j ++) {
-                    if (resistors.indexOf(res[j]) != -1) {
-                        if (res[j].n1 === n2) {
-                            n1 = res[j].n2;
-                        } else {
-                            n1 = res[j].n1;
-                        }
-                        break;
-                    }
-                }
-                flag = series_collision([n0, n1], resistors);
-            }
-            if (flag) {
-                r = resistors[0];
-                for (i = 1; i < resistors.length; i++) {
-                    s = resistors[i];
-                    if (s.type == 'resistor') {
-                        r.resistance += s.resistance;
-                        new Wire(s.board, s.n1, s.n2);
-                        s.remove();
-                    }
-                }
-            } else {
-                nodes.push(n1);
-                r = new Resistor(resistors[0].board, n0, n1, 0);
-                for (i = 0; i < resistors.length; i++) {
-                    s = resistors[i];
-                    if (s.type == 'resistor') {
-                        r.resistance += s.resistance;
-                    }
-                    s.remove();
-                    if (nodes.indexOf(s.n1) == -1) {
-                        s.n1.remove();
-                    }
-                    if (nodes.indexOf(s.n2) == -1) {
-                        s.n2.remove();
-                    }
-                }
-                new Wire(resistors[0].board, n1, n2);
-            }
-        } else {
-            r = new Resistor(resistors[0].board, nodes[0], nodes[1], 0);
-            for (i = 0; i < resistors.length; i++) {
+        if (self.validate(resistors)) {
+            r = resistors[0];
+            for (i = 1; i < resistors.length; i++) {
                 s = resistors[i];
                 if (s.type == 'resistor') {
                     r.resistance += s.resistance;
-                }
-                s.remove();
-                if (nodes.indexOf(s.n1) == -1) {
-                    s.n1.remove();
-                }
-                if (nodes.indexOf(s.n2) == -1) {
-                    s.n2.remove();
+                    new Wire(self.board, s.n1, s.n2);
+                    s.remove();
                 }
             }
-        }
-        r.board.undoAdd();
-        return true;
-    } else {
-        return false;
-    }
-}
-
-// returns true if valid, false if invalid
-function parallel_test (resistors) {
-    console.log("parallel_test");
-    var i; // iterator
-    var nodes = [], uncleared = []; // node array
-    var n; // node
-    var r; // resistor
-
-    r = resistors[0];
-    nodes = [r.n1, r.n2];
-    n = nodes[0];
-    
-    for (i = 1; i < resistors.length; i++) {
-        r = resistors[i];
-        if (n.wired(r.n1)) {
-            uncleared.push(r.n2);
-        } else if (n.wired(r.n2)) {
-            uncleared.push(r.n1);
+            prettify_resistor(r);
+            self.board.undoAdd();
+            return true;
         } else {
-            console.log("circuit was not found to be valid parallel circuit");
-            return true;
+            return false;
         }
-    }
-    for (i = 0; i < uncleared.length; i++) {
-        n = uncleared[i];
-        if (! nodes[1].wired(n)) {
-            console.log("circuit was not found to be valid parallel circuit");
-            return true;
-        }
-    }
-    console.log("circuit found to be valid parallel circuit");
-    return true;
-}
+    },
+    
+    validate: function series_test (self, resistors) {
+        var i, j; // iterator
+        var nodes = []; // node array
+        var connected = [], uncleared = []; // resistor array
+        var r; // resistor
+        var n; // node
+        var flag; // boolean
 
-// returns true if valid and successfully transformed, and false if invalid or unsuccessful
-function parallel_reduce (resistors) {
-    console.log("parallel_reduce");
-    var i;
-    var r, s;
+        self._super(resistors);
 
-    if (parallel_test(resistors)) {
-        r = resistors[0];
-        for (i = 1; i < resistors.length; i++) {
-            s = resistors[i];
-            if (s.type == 'resistor') {
-                r.resistance = ((r.resistance*s.resistance)/(r.resistance+s.resistance));
-                s.remove();
-            }
-        }
-        return true;
-    } else {
-        return false;
-    }
-}
-function resistor_test (resistors) {
-    console.log("resistor_test");
-    console.log("resistor not tested for reducability");
-    return true;
-    ;
-}
-function resistor_reduce (resistors) {
-    console.log("resistor_reduce");
-    var i;
-
-    if (resistor_test(resistors)) {
+        uncleared = [];
         for (i = 0; i < resistors.length; i++) {
-            if (resistors[i].type == 'resistor') {
-                resistors[i].remove();
-            }
+            uncleared.push(resistors[i]);
         }
-        return true;
-    } else {
-        return false;
-    }
-}
-function delta_wye_test (resistors) {
-    console.log("delta_wye_test");
-    ;
-}
-function delta_wye_reduce (resistors) {
-    console.log("delta_wye_reduce");
-    ;
-}
 
-// Returns the center node if valid, and false if invalid
-function wye_delta_test (resistors) {
-    console.log("wye_delta_test");
-    var i, j; // iterators
-    var nodes = []; // node array
-    var n; // node
-    var r; // resistor
-    var flag; // boolean
+        nodes = uncleared.pop().nodes();
 
-    if (resistors.length != 3) {
-        return false
-    }
-
-    r = resistors[0];
-    nodes = [r.n1, r.n2]
-
-    for (i = 0; i < nodes.length; i++) {
-        n = nodes[1];
-        flag = true;
-        if (n.resistors.length == 3) {
-            for (i = 0; i < resistors.length; i++) {
-                r = resistors[i]
-                if ((! r.n1.wired(n)) && (! r.n2.connected)) {
-                    flag = false;
+        for (i = 0; i < nodes.length; i++) {
+            n = nodes[i];
+            flag = true;
+            while (flag && (uncleared.length > 0)) {
+                flag = false;
+                connected = n.resistors();
+                if (connected.length == 2) {
+                    for (j = 0; j < connected.length; j++) {
+                        r = connected[j];
+                        index = uncleared.indexOf(r)
+                        if (index != -1) {
+                            uncleared.splice(index, 1);
+                            if (n.wired(r.n1)) {
+                                n = r.n2;
+                            } else {
+                                n = r.n1;
+                            }
+                            flag = true;
+                            break;
+                        }
+                    }
                 }
             }
-            if (flag) {
-                return n;
+            nodes[i] = n; // commit the end node back to the nodes array
+        }
+        if (uncleared.length > 0) {
+            return undef;
+        } else {
+            return nodes;
+        }
+    },
+});
+
+var ParallelReduction = Reduction.extend({
+    type: "parallel-reduction",
+    name: "Parallel",
+
+    init: function(self, board) {
+        self._super(board);
+    },
+
+    reduce: function(self, resistors) {
+        var nodes; // node array
+        var i; // iterator
+        var r, s; // resistor
+
+        self._super(resistors);
+
+        nodes = self.validate(resistors);
+        if (nodes) {
+            r = resistors[0];
+            for (i = 1; i < resistors.length; i++) {
+                s = resistors[i];
+                if (s.type == 'resistor') {
+                    r.resistance = ((r.resistance*s.resistance)/(r.resistance+s.resistance));
+                    s.remove();
+                }
+            }
+            prettify_resistor(r);
+            self.board.undoAdd();
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    validate: function(self, resistors) {
+        var i; // iterator
+        var nodes = [], uncleared = []; // node array
+        var n; // node
+        var r; // resistor
+
+        self._super(resistors);
+
+        nodes = resistors[0].nodes();
+        n = nodes[0];
+        
+        for (i = 1; i < resistors.length; i++) {
+            r = resistors[i];
+            if (n.wired(r.n1)) {
+                uncleared.push(r.n2);
+            } else if (n.wired(r.n2)) {
+                uncleared.push(r.n1);
+            } else {
+                console.log("circuit was not found to be valid parallel circuit");
+                return false;
+            }
+        }
+        for (i = 0; i < uncleared.length; i++) {
+            n = uncleared[i];
+            if (! nodes[1].wired(n)) {
+                console.log("circuit was not found to be valid parallel circuit");
+                return false;
+            }
+        }
+        console.log("circuit found to be valid parallel circuit");
+        return true;
+    },
+});
+
+var RemoveReduction = Reduction.extend({
+    type: "remove-reduction",
+    name: "Remove",
+
+    init: function(self, board) {
+        self._super(board);
+    },
+
+    reduce: function(self, resistors) {
+        var nodes; // node array
+        var i;
+
+        self._super(resistors);
+
+        nodes = self.validate(resistors);
+        if (nodes) {
+            for (i = 0; i < resistors.length; i++) {
+                if (resistors[i].type == 'resistor') {
+                    resistors[i].remove();
+                }
+            }
+            self.board.undoAdd();
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    validate: function(self, resistors) {
+        self._super(resistors);
+        return true;
+    },
+});
+
+var DeltaWyeReduction = Reduction.extend({
+    type: "delta-wye-reduction",
+    name: "Delta-Wye",
+
+    init: function(self, board) {
+        self._super(board);
+    },
+
+    reduce: function(self, resistors) {
+        var nodes; // node array
+
+        self._super(resistors);
+
+        nodes = self.validate(resistors);
+        if (nodes) {
+            self.board.undoAdd();
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    validate: function(self, resistors) {
+        self._super(resistors);
+    },
+});
+
+var WyeDeltaReduction = Reduction.extend({
+    type: "wye-delta-reduction",
+    name: "Wye-Delta",
+
+    init: function(self, board) {
+        self._super(board);
+    },
+
+    reduce: function(self, resistors) {
+        var nodes; // node array
+
+        self._super(resistors);
+
+        nodes = self.validate(resistors);
+        if (nodes) {
+            self.board.undoAdd();
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    validate: function(self, resistors) {
+        var i, j; // iterators
+        var nodes = []; // node array
+        var n; // node
+        var r; // resistor
+        var flag; // boolean
+
+        self._super(resistors);
+
+        if (resistors.length != 3) {
+            return false
+        }
+
+        nodes = resistors[0].nodes();
+
+        for (i = 0; i < nodes.length; i++) {
+            n = nodes[i];
+            flag = true;
+            if (n.resistors().length == 3) {
+                for (j = 0; j < resistors.length; j++) {
+                    r = resistors[j]
+                    if (! ( r.n1.wired(n) || r.n2.wired(n))) {
+                        flag = false;
+                    }
+                }
+                if (flag) {
+                    // collect the outside nodes for the new graph
+                    return nodes;
+                }
+            }
+        }
+        return false;
+    },
+});
+
+
+/*
+@args:
+    a: node, or object with a.x and a.y
+    b: node, or object with a.x and a.y
+    ignore_elements: a list of elements to ignore collisions from
+@return:
+    collision:
+        true
+    no-collision:
+        false
+*/
+function prettify_collision(a, b, ignore_elements) {
+    var i, j; // iterator
+    var e; // element
+    var n; // node
+    var board_elements = []; // element array
+    var nodes = [], ignore_nodes = [], board_nodes = []; // node array
+    var lx, ly, rx, ry, distance, index; // integers
+    console.log("prettify_collision");
+    
+    // find all nodes connected to an element in elements
+    for (i = 0; i < ignore_elements.length; i++) {
+        e = ignore_elements[i];
+        nodes = e.nodes();
+        for (j = 0; j < nodes.length; j++) {
+            if (ignore_nodes.indexOf(nodes[j]) == -1) {
+                ignore_nodes.push(nodes[j]);
             }
         }
     }
-    return false;
 
+    //find any nodes that collide with the line from a to b
+    board_nodes = a.board.nodes;
+    for (i = 0; i < board_nodes.length; i++) {
+        n = board_nodes[i];
+        if (ignore_nodes.indexOf(n) == -1) {
+            // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
+            lx = b.x - a.x;
+            ly = b.y - a.y;
+            rx = a.x - n.x;
+            ry = a.y - n.y;
+
+            distance = Math.abs((lx * ry) - (ly * rx)) / Math.sqrt(lx * lx + ly * ly);
+            if (distance < 5) {
+                console.log("node collision detected");
+                return true;
+            }
+        }
+    }
+
+    board_elements = a.board.elements;
+    for (i = 0; i < board_elements.length; i++){
+        e = board_elements[i];
+        if (((e.n1 === a) && (e.n2 === b)) ||
+                ((e.n2 === a) && (e.n1 === b))) {
+            if (ignore_elements.indexOf(e) == -1) {
+                console.log("element collision detected");
+                return true;
+            }
+        }
+    }
+
+    console.log("clear to prettify");
+    return false;
 }
 
-// returns true if valid and successfully transformed, and false if invalid or unsuccessful
-function wye_delta_reduce (resistors) {
-    console.log("wye_delta_reduce");
-    var n = wye_delta_test(resistors); // false or the center node
+/*
+@args:
+    resistor: a single resistor that may need the wires around it cleaned
+@return:
+    no pretty-fying occured:
+        false
+    pretty-fying occured:
+        true
+*/
+function prettify_resistor(resistor) {
+    var i, j; // iterator
+    var flag; // boolean
+    var n; // node
+    var nodes = []; // node array
+    var e; // element
+    var elements = []; // element array
+    var reduction_elements = [[],[]]; // array of element arrays
 
-    if (n != false) {
-//        reduce;
-        return true;
-    } else {
-        return false;
+    nodes = resistor.nodes();
+    for (i = 0; i < nodes.length; i++) {
+        n = nodes[i];
+        prettify_trim_wire(n);
+
+        e = resistor;
+        while (true) {
+            elements = n.elements();
+            if (elements.length == 2) {
+                flag = false;
+                for (j = 0; j < elements.length; j++) {
+                    if (! (elements[j] === e)) {
+                        if (! (elements[j].type == "wire")) {
+                            flag = true;
+                        } else {
+                            e = elements[j];
+                            reduction_elements[i].push(e);
+                            if (e.n1 === n) {
+                                n = e.n2;
+                            } else {
+                                n = e.n1;
+                            }
+                        }
+                    }
+                }
+                if (flag) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        nodes[i] = n;
     }
+    
+    while (true) {
+        flag = prettify_collision(nodes[0], nodes[1], 
+                 reduction_elements[0].concat(reduction_elements[1]).concat([resistor]));
+        if (! flag) {
+            break;
+        } else {
+            //bring nodes[0] in one
+            n = nodes[0];
+            e = reduction_elements[0].pop();
+            if (e) {
+                if (e.n1 === nodes[0]) {
+                    nodes[0] = e.n2;
+                } else {
+                    nodes[0] = e.n1;
+                }
+            }
+
+            flag = prettify_collision(nodes[0], nodes[1], 
+                     reduction_elements[0].concat(reduction_elements[1]).concat([resistor]));
+            if (! flag) {
+                break;
+            } else {
+                // push nodes[0] out one
+                if (e) {
+                    reduction_elements[0].push(e);
+                    nodes[0] = n;
+                }
+
+                // bring nodes[1] in one
+                e = reduction_elements[1].pop();
+                if (e) {
+                    if (e.n1 === nodes[1]) {
+                        nodes[1] = e.n2;
+                    } else {
+                        nodes[1] = e.n1;
+                    }
+                }
+
+                flag = prettify_collision(nodes[0], nodes[1], 
+                         reduction_elements[0].concat(reduction_elements[1]).concat([resistor]));
+                if (! flag) {
+                    break;
+                }  else {
+                    // bring nodes[0] in one
+                    e = reduction_elements[0].pop();
+                    if (e) {
+                        if (e.n1 === nodes[0]) {
+                            nodes[0] = e.n2;
+                        } else {
+                            nodes[0] = e.n1;
+                        }
+                    }
+                    
+                    if ((reduction_elements[0].length == 0) && (reduction_elements[1].length == 0)) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    resistor.selected = true;
+    resistor.n1_migrate(nodes[0]);
+    resistor.n2_migrate(nodes[1]);
+
+    for (i = 0; i < reduction_elements.length; i++) {
+        elements = reduction_elements[i];
+        for (j = 0; j < elements.length; j++) {
+            e = elements[j];
+            e.remove();
+            if (nodes.indexOf(e.n1) == -1) {
+                e.n1.remove();
+            }
+            if (nodes.indexOf(e.n2) == -1) {
+                e.n2.remove();
+            }
+        }
+    }
+}
+
+/*
+@args:
+    resistors: an array of *three* resistors that make up a delta circuit,
+        and may need wires around them cleaned
+@return:
+    no pretty-fying occured:
+        false
+    pretty-fying occured:
+        true
+*/
+function prettify_delta(resistors) {
+}
+
+/*
+@args
+    resistors: an array of *three* resistors that make up a wye circuit,
+        and may need wires around them cleaned
+@return:
+    no pretty-fying occured:
+        false
+    pretty-fying occured:
+        true
+*/
+function prettify_wye(resistors) {
+}
+
+/*
+@args
+    n: a node whose wires may have extraneous branches to purge
+@return:
+    no pretty-fying occured:
+        false
+    pretty-fying occured:
+        true
+*/
+function prettify_trim_wire(n) {
+    var i; // iterator
+
+    
 }
