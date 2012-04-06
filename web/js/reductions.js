@@ -10,7 +10,7 @@ var Reduction = Class.extend({
     //  @always:
     //      add a button to the reduction section for the given type of reduction
     make_elem: function(self) {
-        self.elem = $('<div class="button" id="tool_series">'.concat(self.name.concat('</div>')))
+        self.elem = $('<div class="button" id="' + self.type + '">' + self.name + '</div>')
             .appendTo('#reductions')
             .bind('click', function() {
                 self.reduce(self.board.selected_resistors());
