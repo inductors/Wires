@@ -29,7 +29,7 @@ var Reduction = Class.extend({
             nodes[] : an array of edge nodes to build the new graph on
     */
     validate: function(self, resistors) {
-        console.log(self.type.concat(" validate"));
+        console.log(self.name.concat(" validate"));
     },
 
     /*
@@ -45,7 +45,7 @@ var Reduction = Class.extend({
             true
     */
     reduce: function(self, resistors) {
-        console.log(self.type.concat(" reduce"));
+        console.log(self.name.concat(" reduce"));
     },
 });
 
