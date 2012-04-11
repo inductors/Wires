@@ -187,16 +187,16 @@ var ParallelReduction = Reduction.extend({
             } else if (n.wired(r.n2)) {
                 uncleared.push(r.n1);
             } else {
-                return false;
+                return undefined;
             }
         }
         for (i = 0; i < uncleared.length; i++) {
             n = uncleared[i];
             if (! nodes[1].wired(n)) {
-                return false;
+                return undefined;
             }
         }
-        return true;
+        return nodes;
     },
 });
 
