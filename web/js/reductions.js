@@ -376,7 +376,7 @@ var WyeDeltaReduction = Reduction.extend({
         self._super(resistors);
 
         if (resistors.length != 3) {
-            return false
+            return undefined;
         }
 
         nodes = resistors[0].nodes();
@@ -397,7 +397,7 @@ var WyeDeltaReduction = Reduction.extend({
                 }
             }
         }
-        return false;
+        return undefined;
     },
 });
 
