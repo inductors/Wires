@@ -187,18 +187,15 @@ var ParallelReduction = Reduction.extend({
             } else if (n.wired(r.n2)) {
                 uncleared.push(r.n1);
             } else {
-                console.log("circuit was not found to be valid parallel circuit");
                 return false;
             }
         }
         for (i = 0; i < uncleared.length; i++) {
             n = uncleared[i];
             if (! nodes[1].wired(n)) {
-                console.log("circuit was not found to be valid parallel circuit");
                 return false;
             }
         }
-        console.log("circuit found to be valid parallel circuit");
         return true;
     },
 });
