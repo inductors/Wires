@@ -368,7 +368,7 @@ var WyeDeltaReduction = Reduction.extend({
 
     validate: function(self, resistors) {
         var i, j; // iterators
-        var nodes = []; // node array
+        var nodes = [], nodes2 = []; // node array
         var n; // node
         var r; // resistor
         var flag; // boolean
@@ -385,15 +385,19 @@ var WyeDeltaReduction = Reduction.extend({
             n = nodes[i];
             flag = true;
             if (n.resistors().length == 3) {
+                nodes2 = [nodes[((i - 1)* -1)]];
                 for (j = 0; j < resistors.length; j++) {
                     r = resistors[j]
-                    if (! ( r.n1.wired(n) || r.n2.wired(n))) {
+                    if (r.n1.wired(n)) {
+                        nodes2.push(r.n2);
+                    } else if (r.n2.wired(n) {
+                        nodes2.push(r.n1);
+                    } else {
                         flag = false;
                     }
                 }
                 if (flag) {
-                    // collect the outside nodes for the new graph
-                    return nodes;
+                    return nodes2;
                 }
             }
         }
