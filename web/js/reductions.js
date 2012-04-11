@@ -354,11 +354,36 @@ var WyeDeltaReduction = Reduction.extend({
 
     reduce: function(self, resistors) {
         var nodes; // node array
+        var i; // iterator
+        var ohms1 = [], ohms2 = []; // resistance arrays
+        var r; // resistor
+        var n; // node
 
         self._super(resistors);
 
         nodes = self.validate(resistors);
         if (nodes) {
+            // grab resistances and purge the old wye circuit
+            for (i = 0; i < resistors.length; i++) {
+                r = resistors[i];
+                ohms1[i] = r.resistance;
+                index = nodes.indexOf(r.n1);
+                if (index == -1) {
+                    n = r.n1;
+                } else {
+                    n = r.n2;
+                }
+                prettify_trim_wire(n);
+                r.remove();
+                if (n.elements().length == 0) {
+                    n.remove();
+                }
+            }
+
+            // create a delta circuit
+
+            // prettify_delta(nodes);
+
             self.board.undoAdd();
             return true;
         } else {
