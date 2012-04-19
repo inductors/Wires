@@ -252,8 +252,47 @@ var DeltaWyeReduction = Reduction.extend({
 
         nodes = self.validate(resistors);
         if (nodes) {
-            self.board.undoAdd();
-            return true;
+    	var corner1 = resistors[0].n1.nodes();
+		var corner2 = resistors[0].n2.nodes();
+		var corner3 = [];
+		var i;
+		var cent_cords = {'x': 0, 'y': 0};
+		var cent_node;
+		var corn1_res = (resistors[0].resistance * resistors[1].resistance * resistors[2].resistance) / (resistors[0].resistance + resistors[1].resistance + resistors[2].resistance);
+		var corn2_res = corn1_res, corn3_res =corn1_res; 
+		if (corner1.indexOf(resistors[1].n1) != -1) {
+			corner3 = resistors[1].n2.nodes();
+		} else if (corner2.indexOf(resistors[1].n1) != -1) {
+			corner3 = resistors[1].n2.nodes();
+		} else {
+			corner3 = resistors[1].n1.nodes();
+		}
+		cent_cords.x = (corner1[0].x + corner2[0].x + corner3[0].x) / 3;
+		cent_cords.y = (corner1[0].y + corner2[0].y + corner3[0].y) / 3;
+		cent_cords = self.board.snap_to(cent_cords.x, cent_cords.y);
+		cent_node = new Node(self.board, cent_cords.x, cent_cords.y);
+		for (i = 0; i < 3; i++) {
+			if (corner1.indexOf(resistors[i].n1) == -1 && corner1.indexOf(resistors[i].n2) == -1) {
+				corn1_res = corn1_res / resistors[i].resistance;
+			}
+			if (corner2.indexOf(resistors[i].n1) == -1 && corner2.indexOf(resistors[i].n2) == -1) {
+				corn2_res = corn2_res / resistors[i].resistance;
+			}
+			if (corner3.indexOf(resistors[i].n1) == -1 && corner3.indexOf(resistors[i].n2) == -1) {
+				corn3_res = corn3_res / resistors[i].resistance;
+			}
+		}
+		resistors[0].n1 = corner1[0];
+		resistors[0].n2 = cent_node;
+		resistors[0].resistance = corn1_res;
+		resistors[1].n1 = corner2[0];
+		resistors[1].n2 = cent_node;
+		resistors[1].resistance = corn2_res;
+		resistors[2].n1 = corner3[0];
+		resistors[2].n2 = cent_node;
+		resistors[2].resistance = corn3_res;
+		self.board.undoAdd();
+		return true;
         } else {
             return false;
         }
@@ -261,6 +300,50 @@ var DeltaWyeReduction = Reduction.extend({
 
     validate: function(self, resistors) {
         self._super(resistors);
+	if (resistors.length != 3) {
+		return false;
+	} else {
+		var corner1 = resistors[0].n1.nodes();
+		var corner2 = resistors[0].n2.nodes();
+		var corner3 = [];
+		var corn_val1 = 0, corn_val2 = 0, corn_val3 = 0;
+		var i;
+		if (corner1.indexOf(resistors[1].n1) != -1) {
+			corner3 = resistors[1].n2.nodes();
+		} else if (corner2.indexOf(resistors[1].n1) != -1) {
+			corner3 = resistors[1].n2.nodes();
+		} else {
+			corner3 = resistors[1].n1.nodes();
+		}
+		for (i = 0; i < 3; i++) {
+			if (resistors[i].n1.wired(resistors[i].n2)) {
+				return false;
+			}
+			if (corner1.indexOf(resistors[i].n1) != -1){
+				corn_val1++;
+			}
+			if (corner1.indexOf(resistors[i].n2) != -1){
+				corn_val1++;
+			}
+			if (corner2.indexOf(resistors[i].n1) != -1){
+				corn_val2++;
+			}
+			if (corner2.indexOf(resistors[i].n2) != -1){
+				corn_val2++;
+			}
+			if (corner3.indexOf(resistors[i].n1) != -1){
+				corn_val3++;
+			}
+			if (corner3.indexOf(resistors[i].n2) != -1){
+				corn_val3++;
+			}
+		}
+		if (corn_val1 == 2 && corn_val2 == 2 && corn_val3 == 2){
+			return true;
+		} else {
+			return false;
+		}
+	}
     },
 });
 
