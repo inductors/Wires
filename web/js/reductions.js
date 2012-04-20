@@ -415,7 +415,7 @@ var WyeDeltaReduction = Reduction.extend({
                     r = resistors[j]
                     if (r.n1.wired(n)) {
                         nodes2.push(r.n2);
-                    } else if (r.n2.wired(n) {
+                    } else if (r.n2.wired(n)) {
                         nodes2.push(r.n1);
                     } else {
                         flag = false;
