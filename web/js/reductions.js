@@ -747,6 +747,6 @@ function prettify_trim_wire(node) {
     pretty-fying occured:
         true
 */
-function prettify_trim_wire(node) {
+function prettify_node(node) {
     
 }
