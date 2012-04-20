@@ -677,7 +677,6 @@ function prettify_delta(resistors) {
 
     for (i = 0; i < nodes.length; i++) {
         n = nodes[i];
-        flag |= prettify_trim_wire(n);
         flag |= prettify_node(n);
     }
 
