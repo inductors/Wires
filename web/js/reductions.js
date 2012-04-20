@@ -279,14 +279,14 @@ var DeltaWyeReduction = Reduction.extend({
 				corn3_res = corn3_res / resistors[i].resistance;
 			}
 		}
-		resistors[0].n1 = corner1[0];
-		resistors[0].n2 = cent_node;
+		resistors[0].n1_migrate(corner1[0]);
+		resistors[0].n2_migrate(cent_node);
 		resistors[0].resistance = corn1_res;
-		resistors[1].n1 = corner2[0];
-		resistors[1].n2 = cent_node;
+		resistors[1].n1_migrate(corner2[0]);
+		resistors[1].n2_migrate(cent_node);
 		resistors[1].resistance = corn2_res;
-		resistors[2].n1 = corner3[0];
-		resistors[2].n2 = cent_node;
+		resistors[2].n1_migrate(corner3[0]);
+		resistors[2].n2_migrate(cent_node);
 		resistors[2].resistance = corn3_res;
 		self.board.undoAdd();
 		return true;
