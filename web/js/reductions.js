@@ -467,6 +467,12 @@ function prettify_collision(a, b, ignore_elements) {
     var index; // integers
     console.log("prettify_collision");
     
+    // if a === b, *don't* prettify that.
+    if (a === b) {
+        console.log("node a collides with node b, by being the same node.");
+        return true;
+    }
+
     // find all nodes connected to an element in elements
     for (i = 0; i < ignore_elements.length; i++) {
         e = ignore_elements[i];
