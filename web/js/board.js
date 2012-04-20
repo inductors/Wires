@@ -330,8 +330,10 @@ var ScreenObject = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.__defineSetter__('selected', self._set_selected);
-        self.__defineGetter__('selected', self._get_selected);
+        Object.defineProperty(self, 'selected', {
+            get: self._get_selected,
+            set: self._set_selected,
+        });
 
         self.old_selected = false;
         self.selected = false;
@@ -676,8 +678,10 @@ var ProtoResistor = ProtoWire.extend({
     init: function(self, board, n1, n2, resistance) {
         self._super(board, n1, n2);
 
-        self.__defineGetter__('resistance', self._get_resistance);
-        self.__defineSetter__('resistance', self._set_resistance);
+        Object.defineProperty(self, 'resistance', {
+            get: self._get_resistance,
+            set: self._set_resistance,
+        });
 
         self.resistance = resistance;
     },
