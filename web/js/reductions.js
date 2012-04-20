@@ -717,6 +717,8 @@ function prettify_wye(resistors) {
 function prettify_trim_wire(node) {
     var i; // iterator
     var nodes = []; // node array
+    var n; // node
+    var elements = []; // element array
 
     nodes = node.nodes();
 
