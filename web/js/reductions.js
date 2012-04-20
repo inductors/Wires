@@ -659,6 +659,29 @@ function prettify_resistor(resistor) {
         true
 */
 function prettify_delta(resistors) {
+    var i; // iterator
+    var nodes = []; // node array
+    var n; // node
+    var r; // resistor
+    var flag = false; // boolean
+
+    for (i = 0; i < resistors.length; i++) {
+        r = resistors[i];
+        if (nodes.indexOf(r.n1) == -1) {
+            nodes.push(r.n1);
+        }
+        if (nodes.indexOf(r.n2) == -1) {
+            nodes.push(r.n2);
+        }
+    }
+
+    for (i = 0; i < nodes.length; i++) {
+        n = nodes[i];
+        flag |= prettify_trim_wire(n);
+        flag |= prettify_node(n);
+    }
+
+    return flag;
 }
 
 /*
@@ -711,4 +734,17 @@ function prettify_trim_wire(node) {
             elements = n.elements();
         }
     }
+}
+
+/*
+@args
+    n: a node whose wires may need reducing
+@return:
+    no pretty-fying occured:
+        false
+    pretty-fying occured:
+        true
+*/
+function prettify_trim_wire(node) {
+    
 }
