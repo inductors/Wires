@@ -358,6 +358,7 @@ var WyeDeltaReduction = Reduction.extend({
         var o; // resistance
         var ohms = []; // resistance array
         var r; // resistor
+        var delta = []; //resistor array
         var n; // node
 
         self._super(resistors);
@@ -386,6 +387,7 @@ var WyeDeltaReduction = Reduction.extend({
             for (i = 0; i < ohms.length; i++) {
                 r = new Resistor(self.board, nodes[i], nodes[(i + 1) % 3], 0);
                 r.selected = true;
+                delta.push(r);
                 for (j = 0; j < resistors.length; j++) {
                     if (resistors[j].nodes().indexOf(nodes[(i + 2) % 3]) != -1) {
                         r.resistance = o / ohms[j];
@@ -395,7 +397,7 @@ var WyeDeltaReduction = Reduction.extend({
             }
 
 
-            // prettify_delta(nodes);
+            prettify_delta(delta);
 
             self.board.undoAdd();
             return true;
