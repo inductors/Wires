@@ -741,12 +741,64 @@ function prettify_trim_wire(node) {
 /*
 @args
     n: a node whose wires may need reducing
+        note that this will also trim extraneous branches
 @return:
-    no pretty-fying occured:
+    error occured:
         false
-    pretty-fying occured:
+    no error occured:
         true
 */
 function prettify_node(node) {
+    var elements = []; // element array
+    var e; // element
+    var nodes = []; // node array
+    var n, center; // node
+    var i; // iterator
     
+    resistors = node.resistors();
+    uncleared_nodes = node.nodes();
+    remaining_nodes = [];
+
+    // clean all the wires and nodes not connected directly to elements
+    while (uncleared_nodes.length > 0) {
+        n = uncleared_nodes.pop();
+        elements = n.elements();
+        for (i = 0; i < elements.length; i++) {
+            e = elements[i];
+            if (e.type == "wire") {
+                e.remove();
+            }
+        }
+        if (n.elements().length == 0) {
+            n.remove();
+        } else {
+            remaining_nodes.push(n);
+        }
+    }
+
+    if (remaining_nodes.length == 2) {
+        // make the center node one of the existing nodes
+        center = remaining_nodes.pop();
+    } else if (resistors.length > 2) {
+        // make the center node at the geometric average of the nodes
+        center = new Node(remaining_nodes[0].board, 0, 0)
+        for (i = 0; i < remaining_nodes.length; i++) {
+            center.x += remaining_nodes[i].x;
+            center.y += remaining_nodes[i].y;
+        }
+        center.x /= remaining_nodes.length;
+        center.y /= remaining_nodes.length;
+    } else {
+        // less nodes than that mean you can just return now
+        return true;
+    }
+
+    // connect all the nodes to the center via wires
+    for (i = 0; i < remaining_nodes.length; i++) {
+        n = remaining_nodes[i];
+        new Wire(n.board, n, center);
+    }
+
+    // yeah, this function really does always return true.
+    return true;
 }
