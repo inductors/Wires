@@ -423,7 +423,7 @@ var WyeDeltaReduction = Reduction.extend({
             n = nodes[i];
             flag = true;
             if (n.resistors().length == 3) {
-                nodes2 = [nodes[((i - 1)* -1)]];
+                nodes2 = [];
                 for (j = 0; j < resistors.length; j++) {
                     r = resistors[j]
                     if (r.n1.wired(n)) {
