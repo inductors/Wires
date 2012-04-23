@@ -231,38 +231,38 @@ var Board = Class.extend({
 
         return {'x': x, 'y': y};
     },
-    
+
     undoAdd: function(self) {
-	text = self.serialize(false);
-	self.curUndo++;
-	console.log(self.curUndo);
-	var diff = self.undoLog.length - self.curUndo;
-	for (var i=0; i<diff; i++) {
-	    self.undoLog.pop();
+        var text = self.serialize(false);
+        self.curUndo++;
+        console.log(self.curUndo);
+        var diff = self.undoLog.length - self.curUndo;
+        for (var i=0; i<diff; i++) {
+            self.undoLog.pop();
         }
-	self.undoLog.push(text);
+        self.undoLog.push(text);
     },
 
     undo: function(self) {
-	self.curUndo--;
-	console.log(self.curUndo);
-	console.log(self.undoLog[self.curUndo]);
-	if (self.curUndo < 0) {
-	    self.curUndo = 0;
-	}
-	self.deserialize(self.undoLog[self.curUndo], false);
+        self.curUndo--;
+        console.log(self.curUndo);
+        console.log(self.undoLog[self.curUndo]);
+        if (self.curUndo < 0) {
+            self.curUndo = 0;
+        }
+        self.deserialize(self.undoLog[self.curUndo], false);
     },
-    
+
     redo: function(self) {
-	self.curUndo++;
-	console.log(self.curUndo);
-	console.log(self.undoLog[self.curUndo]);
-	if (self.curUndo > (self.undoLog.length-1)) {
-	    self.curUndo = self.undoLog.length-1;
-	}
-	self.deserialize(self.undoLog[self.curUndo], false);
+        self.curUndo++;
+        console.log(self.curUndo);
+        console.log(self.undoLog[self.curUndo]);
+        if (self.curUndo > (self.undoLog.length-1)) {
+            self.curUndo = self.undoLog.length-1;
+        }
+        self.deserialize(self.undoLog[self.curUndo], false);
     },
-    
+
     serialize: function(self, full) {
         for (var i=0; i<self.nodes.length; i++) {
             self.nodes[i].id = i;
@@ -272,16 +272,16 @@ var Board = Class.extend({
             self.elements[i].n2_id = self.elements[i].n2.id;
         }
         var keys = ["id", "nodes", "elements", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes"];
-	if (full == true) {
-	    keys = ["id", "nodes", "elements", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes", "undoLog", "curUndo"];
-	}
+        if (full == true) {
+            keys = keys.concat(['undoLog', 'curUndo']);
+        }
         var text = JSON.stringify(self, keys);
         console.log(text);
-	return text;
+        return text;
     },
 
     deserialize: function(self, text, full) {
-	self.deserializing = true;
+        self.deserializing = true;
         var boardData = JSON.parse(text);
         self.nodes = [];
         for (var i=0; i<boardData.nodes.length; i++) {
@@ -298,14 +298,14 @@ var Board = Class.extend({
             }
             self.elements[i].notes = boardData.elements[i].notes;
         }
-	if (full == true) {
-		self.undoLog = []
-		for (var i=0; i<boardData.undoLog.length; i++) {
-		    self.undoLog[i] = boardData.undoLog[i];
-		}
-		self.curUndo = boardData.curUndo;
-	}
-	self.deserializing = false;
+        if (full == true) {
+            self.undoLog = []
+            for (var i=0; i<boardData.undoLog.length; i++) {
+                self.undoLog[i] = boardData.undoLog[i];
+            }
+            self.curUndo = boardData.curUndo;
+        }
+        self.deserializing = false;
     }
 });
 
@@ -902,7 +902,7 @@ var Serializer = Class.extend({
             .appendTo('#serial')
             .bind('click', function() {
                 console.log('Serializing.');
-		$('#serial input').val(self.board.serialize(true));
+        $('#serial input').val(self.board.serialize(true));
             }
         );
     },
@@ -917,9 +917,9 @@ var Deserializer = Class.extend({
             .appendTo('#serial')
             .bind('click', function() {
                 console.log('Deserializing.');
-		var text = $('#serial input').val();
+        var text = $('#serial input').val();
                 self.board.deserialize(text, true);
-		$('#serial input').val("");
+        $('#serial input').val("");
             }
         );
     },
