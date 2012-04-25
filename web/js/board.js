@@ -12,6 +12,7 @@ $(function() {
 
     new Undo(b);
     new Redo(b);
+    new Delete(b);
 
     new SeriesReduction(b);
     new ParallelReduction(b);
@@ -462,10 +463,16 @@ var Node = ScreenObject.extend({
     },
 
     remove: function(self) {
-        var index
+        var index;
         index = self.board.nodes.indexOf(self);
         if (index != -1) {
             self.board.nodes.splice(index, 1); // remove if found
+        }
+        for (var i=0; i < self.elements1.length; i++) {
+            self.elements1[i].remove();
+        }
+        for (var i=0; i < self.elements2.length; i++) {
+            self.elements2[i].remove();
         }
     },
 });
@@ -892,6 +899,24 @@ var Redo = Class.extend({
         );
     },
 });
+
+var Delete = Class.extend({
+    type: "delete",
+
+    init: function(self, board) {
+        self.board = board;
+        self.elem = $('<div class="button" id="delete_button">Delete</div>')
+            .appendTo('#actions')
+            .bind('click', function() {
+                var selected = self.board.selected();
+                for (var i=0; i<selected.length; i++) {
+                    selected[i].remove();
+                }
+            }
+        );
+    },
+});
+
 
 var Serializer = Class.extend({
     type: "serializer",
