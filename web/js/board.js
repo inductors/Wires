@@ -640,6 +640,7 @@ var ProtoWire = ScreenObject.extend({
             self.widget_elem.remove();
         }
         self.selected = false;
+        self.board.undoAdd();
         return null;
     },
 });
