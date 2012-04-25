@@ -490,6 +490,9 @@ var ProtoWire = ScreenObject.extend({
             self.board.elements.push(self);
         }
         console.log('Element.init');
+
+        self.color = 'rgb(0,0,0)';
+        self.selected_color = 'rgb(255,0,0)';
     },
 
     draw: function(self) {
@@ -497,9 +500,9 @@ var ProtoWire = ScreenObject.extend({
         ctx.save();
 
         if (self.selected) {
-            ctx.strokeStyle = 'rgb(255,0,0)';
+            ctx.strokeStyle = self.selected_color;
         } else {
-            ctx.strokeStyle = 'rgb(0,0,0)';
+            ctx.strokeStyle = self.color;
         }
         ctx.strokeWeight = 2;
 
@@ -692,9 +695,9 @@ var ProtoResistor = ProtoWire.extend({
         var ctx = self.board.ctx;
         ctx.save();
         if (self.selected) {
-            ctx.strokeStyle = 'rgb(255,0,0)';
+            ctx.strokeStyle = self.selected_color;
         } else {
-            ctx.strokeStyle = 'rgb(0,0,0)';
+            ctx.strokeStyle = self.color;
         }
         ctx.strokeWeight = 2;
 
