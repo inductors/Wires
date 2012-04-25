@@ -284,18 +284,29 @@ var Board = Class.extend({
     deserialize: function(self, text, full) {
         self.deserializing = true;
         var boardData = JSON.parse(text);
-        self.nodes = [];
+
+        for (var i=0; i < self.nodes.length; i++) {
+            self.nodes[i].remove();
+        }
+        // This is probably un-needed, because removing all nodes should remove
+        // all elements. But it can't hurt.
+        for (var i=0; i < self.elements.length; i++) {
+            self.elements[i].remove();
+        }
+
         for (var i=0; i<boardData.nodes.length; i++) {
             self.nodes[i] = new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
             self.nodes[i].notes = boardData.nodes[i].notes;
         }
-        self.elements = [];
         for (var i=0; i<boardData.elements.length; i++) {
+            var n1 = self.nodes[boardData.elements[i].n1_id];
+            var n2 = self.nodes[boardData.elements[i].n2_id];
             if (boardData.elements[i].type == "wire") {
-                self.elements[i] = new Wire(self, self.nodes[boardData.elements[i].n1_id], self.nodes[boardData.elements[i].n2_id]);
+                self.elements[i] = new Wire(self, n1, n2);
             }
             if (boardData.elements[i].type == "resistor") {
-                self.elements[i] = new Resistor(self, self.nodes[boardData.elements[i].n1_id], self.nodes[boardData.elements[i].n2_id], boardData.elements[i].resistance);
+                var r = boardData.elements[i].resistance;
+                self.elements[i] = new Resistor(self, n1, n2, r);
             }
             self.elements[i].notes = boardData.elements[i].notes;
         }
