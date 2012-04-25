@@ -475,6 +475,8 @@ var Node = ScreenObject.extend({
         for (var i = self.elements2.length - 1; i >= 0; i--) {
             self.elements2[i].remove();
         }
+        self.selected = false;
+        return null;
     },
 });
 
@@ -626,6 +628,7 @@ var ProtoWire = ScreenObject.extend({
         if (self.widget_elem) {
             self.widget_elem.remove();
         }
+        self.selected = false;
         return null;
     },
 });
@@ -663,6 +666,7 @@ var Wire = ProtoWire.extend({
         if (index != -1) {
             self.n2.elements2.splice(index, 1);
         }
+        self.selected = false;
         return null;
     },
 });
@@ -869,6 +873,7 @@ var Resistor = ProtoResistor.extend({
         if (index != -1) {
             self.n2.elements2.splice(index, 1);
         }
+        self.selected = false;
         return null;
     },
 });
