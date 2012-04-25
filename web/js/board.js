@@ -468,10 +468,11 @@ var Node = ScreenObject.extend({
         if (index != -1) {
             self.board.nodes.splice(index, 1); // remove if found
         }
-        for (var i=0; i < self.elements1.length; i++) {
+        // Remove backwards, since elements will being removed from the array.
+        for (var i = self.elements1.length - 1; i >= 0; i--) {
             self.elements1[i].remove();
         }
-        for (var i=0; i < self.elements2.length; i++) {
+        for (var i = self.elements2.length - 1; i >= 0; i--) {
             self.elements2[i].remove();
         }
     },
