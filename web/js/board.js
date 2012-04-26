@@ -234,6 +234,9 @@ var Board = Class.extend({
     },
 
     undoAdd: function(self) {
+        if (self.board.deserializing == true) {
+            return;
+        }
         var text = self.serialize(false);
         self.curUndo++;
         console.log(self.curUndo);
@@ -245,6 +248,9 @@ var Board = Class.extend({
     },
 
     undo: function(self) {
+        if (self.board.deserializing == true) {
+            return;
+        }
         self.curUndo--;
         console.log(self.curUndo);
         console.log(self.undoLog[self.curUndo]);
@@ -255,6 +261,9 @@ var Board = Class.extend({
     },
 
     redo: function(self) {
+        if (self.board.deserializing == true) {
+            return;
+        }
         self.curUndo++;
         console.log(self.curUndo);
         console.log(self.undoLog[self.curUndo]);
