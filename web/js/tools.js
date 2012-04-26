@@ -162,6 +162,7 @@ var WireTool = Tool.extend({
     },
 
     dragstart: function(self, e, target) {
+    	self.board.undoLock = true;
         console.log('WireTool.dragstart');
         self._super(e, target);
         var p = self.board.snap_to(e.real_x, e.real_y);
@@ -202,10 +203,12 @@ var WireTool = Tool.extend({
         if (!hit) {
             self.temp_line.remove();
         } else {
+        	self.board.undoLock = false;
 	        self.board.undoAdd();
-	    }
+	}
         self.temp_line = null;
         self.temp_end_node = null;
+        self.board.undoLock = false;
     },
 });
 
