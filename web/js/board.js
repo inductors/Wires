@@ -304,18 +304,18 @@ var Board = Class.extend({
         }
 
         for (var i=0; i<boardData.nodes.length; i++) {
-            self.nodes[i] = new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
+            new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
             self.nodes[i].notes = boardData.nodes[i].notes;
         }
         for (var i=0; i<boardData.elements.length; i++) {
             var n1 = self.nodes[boardData.elements[i].n1_id];
             var n2 = self.nodes[boardData.elements[i].n2_id];
             if (boardData.elements[i].type == "wire") {
-                self.elements[i] = new Wire(self, n1, n2);
+                new Wire(self, n1, n2);
             }
             if (boardData.elements[i].type == "resistor") {
                 var r = boardData.elements[i].resistance;
-                self.elements[i] = new Resistor(self, n1, n2, r);
+                new Resistor(self, n1, n2, r);
             }
             self.elements[i].notes = boardData.elements[i].notes;
         }
