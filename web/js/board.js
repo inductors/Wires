@@ -294,13 +294,13 @@ var Board = Class.extend({
         self.deserializing = true;
         var boardData = JSON.parse(text);
 
-        for (var i=0; i < self.nodes.length; i++) {
-            self.nodes[i].remove();
+        while (self.nodes.length > 0) {
+            self.nodes[0].remove();
         }
         // This is probably un-needed, because removing all nodes should remove
         // all elements. But it can't hurt.
-        for (var i=0; i < self.elements.length; i++) {
-            self.elements[i].remove();
+        while (self.elements.length > 0) {
+            self.elements[0].remove();
         }
 
         for (var i=0; i<boardData.nodes.length; i++) {
