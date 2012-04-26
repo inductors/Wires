@@ -138,9 +138,7 @@ var NodeTool = Tool.extend({
         self._super(e, target);
         var p = self.board.snap_to(e.real_x, e.real_y);
         var n = new Node(self.board, p.x, p.y);
-        if (self.board.deserializing == false) {
-            self.board.undoAdd();
-        }
+        self.board.undoAdd();
     },
 });
 
