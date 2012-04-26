@@ -31,7 +31,7 @@ var Board = Class.extend({
         self.elements = [];
         self.undoLog = [];
         self.curUndo = -1;
-        self.deserializing = false;
+        self.undoLock = false;
 
         self.drag = 0;
         self.drag_target = null;
@@ -234,7 +234,7 @@ var Board = Class.extend({
     },
 
     undoAdd: function(self) {
-        if (self.deserializing == true) {
+        if (self.undoLock == true) {
             return;
         }
         var text = self.serialize(false);
@@ -248,7 +248,7 @@ var Board = Class.extend({
     },
 
     undo: function(self) {
-        if (self.deserializing == true) {
+        if (self.undoLock == true) {
             return;
         }
         self.curUndo--;
@@ -261,7 +261,7 @@ var Board = Class.extend({
     },
 
     redo: function(self) {
-        if (self.deserializing == true) {
+        if (self.undoLock == true) {
             return;
         }
         self.curUndo++;
@@ -291,7 +291,7 @@ var Board = Class.extend({
     },
 
     deserialize: function(self, text, full) {
-        self.deserializing = true;
+        self.undoLock = true;
         var boardData = JSON.parse(text);
 
         while (self.nodes.length > 0) {
@@ -326,7 +326,7 @@ var Board = Class.extend({
             }
             self.curUndo = boardData.curUndo;
         }
-        self.deserializing = false;
+        self.undoLock = false;
     }
 });
 
@@ -484,6 +484,7 @@ var Node = ScreenObject.extend({
 
     remove: function(self) {
         var index;
+        self.board.undoLock = true;
         index = self.board.nodes.indexOf(self);
         if (index != -1) {
             self.board.nodes.splice(index, 1); // remove if found
@@ -496,6 +497,8 @@ var Node = ScreenObject.extend({
             self.elements2[i].remove();
         }
         self.selected = false;
+        self.board.undoLock = true;
+        self.board.undoAdd();
         return null;
     },
 });
