@@ -234,7 +234,7 @@ var Board = Class.extend({
     },
 
     undoAdd: function(self) {
-        if (self.board.deserializing == true) {
+        if (self.deserializing == true) {
             return;
         }
         var text = self.serialize(false);
@@ -248,7 +248,7 @@ var Board = Class.extend({
     },
 
     undo: function(self) {
-        if (self.board.deserializing == true) {
+        if (self.deserializing == true) {
             return;
         }
         self.curUndo--;
@@ -261,7 +261,7 @@ var Board = Class.extend({
     },
 
     redo: function(self) {
-        if (self.board.deserializing == true) {
+        if (self.deserializing == true) {
             return;
         }
         self.curUndo++;
