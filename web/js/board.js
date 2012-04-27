@@ -43,7 +43,6 @@ var Board = Class.extend({
         self.snap_size = 20;
 
         setInterval($.proxy(self.redraw, self), 33);
-        setInterval($.proxy(self.ui, self), 200);
 
         $('#board').bind('mousedown', $.proxy(self.mousedown, self));
         $('#board').bind('mousemove', $.proxy(self.mousemove, self));
