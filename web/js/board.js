@@ -102,7 +102,7 @@ var Board = Class.extend({
             }
         }
 
-        return selected
+        return selected;
     },
 
     selected_wires: function(self) {
@@ -117,22 +117,37 @@ var Board = Class.extend({
             }
         }
 
-        return selected
+        return selected;
     },
 
     selected_resistors: function(self) {
         var selected = [];
         var i;
-        var w;
+        var r;
 
         for (i = 0; i < self.elements.length; i++) {
-            w = self.elements[i];
-            if (w.selected && (w.type == 'resistor')) {
-                selected.push(w);
+            r = self.elements[i];
+            if (r.selected && (r.type == 'resistor')) {
+                selected.push(r);
             }
         }
 
-        return selected
+        return selected;
+    },
+
+    resistors: function(self) {
+        var resistors = [];
+        var i;
+        var r;
+
+        for (i = 0; i < self.elements.length; i++) {
+            r = self.elements[i];
+            if (r.type == 'resistor') {
+                resistors.push(r);
+            }
+        }
+
+        return resistors;
     },
 
     set_tool: function(self, tool) {

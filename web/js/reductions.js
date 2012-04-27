@@ -402,7 +402,26 @@ var Reduction = Class.extend({
     },
 
     prettify_force_graph: function(self) {
-    }
+        var i; // iterator
+        var nodes = []; // node array
+        var n; // node
+        var resistors = []; // resistor array
+        var r; // resistor
+
+        for (i = 0; i < self.board.nodes.length; i++) {
+            self.prettify_node(self.board.nodes[i]);
+        }
+
+        resistors = self.board.resistors();
+        for (i = 0; i < resistors.length; i++) {
+            self.prettify_resistor(resistors[i]);
+        }
+
+        // force-iterate
+
+        self.board.undoAdd();
+        return true;
+    },
 });
 
 // tool for series reductions
