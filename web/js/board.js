@@ -54,6 +54,8 @@ var Board = Class.extend({
             self.snap = $(this).prop('checked');
         }).prop('checked', self.snap);
 
+        // initialize the board state for future undos.
+        self.undoAdd();
     },
 
     redraw: function(self) {
