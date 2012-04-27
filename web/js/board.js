@@ -32,7 +32,6 @@ var Board = Class.extend({
         self.elements = [];
         self.undoLog = [];
         self.curUndo = -1;
-        self.undoLock = false;
 
         self.drag = 0;
         self.drag_target = null;
@@ -65,10 +64,6 @@ var Board = Class.extend({
         for (var i=0; i < self.nodes.length; i++) {
             self.nodes[i].draw();
         }
-    },
-
-    ui: function(self) {
-        // Is this even needed anymore?
     },
 
     selected: function(self) {
@@ -235,9 +230,6 @@ var Board = Class.extend({
     },
 
     undoAdd: function(self) {
-        if (self.undoLock == true) {
-            return;
-        }
         var text = self.serialize(false);
         self.curUndo++;
         console.log(self.curUndo);
@@ -249,9 +241,6 @@ var Board = Class.extend({
     },
 
     undo: function(self) {
-        if (self.undoLock == true) {
-            return;
-        }
         self.curUndo--;
         console.log(self.curUndo);
         console.log(self.undoLog[self.curUndo]);
@@ -262,9 +251,6 @@ var Board = Class.extend({
     },
 
     redo: function(self) {
-        if (self.undoLock == true) {
-            return;
-        }
         self.curUndo++;
         console.log(self.curUndo);
         console.log(self.undoLog[self.curUndo]);
@@ -292,7 +278,6 @@ var Board = Class.extend({
     },
 
     deserialize: function(self, text, full) {
-        self.undoLock = true;
         var boardData = JSON.parse(text);
 
         while (self.nodes.length > 0) {
@@ -327,7 +312,6 @@ var Board = Class.extend({
             }
             self.curUndo = boardData.curUndo;
         }
-        self.undoLock = false;
     }
 });
 
@@ -497,7 +481,6 @@ var Node = ScreenObject.extend({
             self.elements2[i].remove();
         }
         self.selected = false;
-        self.board.undoAdd();
         return null;
     },
 });
@@ -651,7 +634,6 @@ var ProtoWire = ScreenObject.extend({
             self.widget_elem.remove();
         }
         self.selected = false;
-        self.board.undoAdd();
         return null;
     },
 });
