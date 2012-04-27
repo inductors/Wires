@@ -485,7 +485,6 @@ var Node = ScreenObject.extend({
 
     remove: function(self) {
         var index;
-        self.board.undoLock = true;
         index = self.board.nodes.indexOf(self);
         if (index != -1) {
             self.board.nodes.splice(index, 1); // remove if found
@@ -498,7 +497,6 @@ var Node = ScreenObject.extend({
             self.elements2[i].remove();
         }
         self.selected = false;
-        self.board.undoLock = true;
         self.board.undoAdd();
         return null;
     },
