@@ -19,6 +19,7 @@ $(function() {
     new RemoveReduction(b);
     new DeltaWyeReduction(b);
     new WyeDeltaReduction(b);
+    new PrettifyReduction(b);
 
     b.set_tool(t);
 });
