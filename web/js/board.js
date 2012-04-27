@@ -497,7 +497,7 @@ var Node = ScreenObject.extend({
             self.elements2[i].remove();
         }
         self.selected = false;
-        self.board.undoLock = true;
+        self.board.undoLock = false;
         self.board.undoAdd();
         return null;
     },
