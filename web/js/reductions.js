@@ -377,7 +377,7 @@ var Reduction = Class.extend({
         if (remaining_nodes.length == 2) {
             // make the center node one of the existing nodes
             center = remaining_nodes.pop();
-        } else if (resistors.length > 2) {
+        } else if (remaining_nodes.length > 2) {
             // make the center node at the geometric average of the nodes
             center = new Node(self.board, 0, 0)
             for (i = 0; i < remaining_nodes.length; i++) {
@@ -419,7 +419,6 @@ var Reduction = Class.extend({
 
         // force-iterate
 
-        self.board.undoAdd();
         return true;
     },
 });
@@ -860,6 +859,7 @@ var PrettifyReduction = Reduction.extend({
     reduce: function(self, resistors) {
         self._super(resistors);
         self.prettify_force_graph();
+        self.board.undoAdd();
     },
 });
 
