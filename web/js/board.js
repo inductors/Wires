@@ -53,6 +53,24 @@ var Board = Class.extend({
             self.snap = $(this).prop('checked');
         }).prop('checked', self.snap);
 
+        self.colors = [
+            'rgb(240, 163, 255)',
+            'rgb(0, 117, 220)',
+            'rgb(153, 63, 0)',
+            'rgb(76, 0, 92)',
+            'rgb(0, 92, 49)',
+            'rgb(43, 206, 72)',
+            'rgb(255, 204, 153)',
+            'rgb(148, 255, 181)',
+            'rgb(94, 241, 242)',
+            'rgb(143, 124, 0)',
+            'rgb(194, 0, 136)',
+            'rgb(0, 51, 128)',
+            'rgb(66, 102, 0)',
+            'rgb(116, 10, 255)',
+            'rgb(255, 0, 16)',
+        ]
+
         // initialize the board state for future undos.
         self.undoAdd();
     },
@@ -328,6 +346,22 @@ var Board = Class.extend({
             }
             self.curUndo = boardData.curUndo;
         }
+    },
+
+    get_color: function(self) {
+        if (self.colors.length == 0) {
+            return 'rgb(255, 255, 255)';
+        }
+        var c = self.colors.pop();
+        console.log('Giving out {0}'.format(c));
+        return c;
+    },
+
+    return_color: function(self, color) {
+        if (color === undefined || color === null || color === 'rgb(255, 255, 255)') {
+            return;
+        }
+        self.colors.push(color);
     }
 });
 
@@ -344,6 +378,7 @@ var ScreenObject = Class.extend({
         self.old_selected = false;
         self.selected = false;
         self.widget_elem = null;
+        self.selected_color = null;
     },
 
     _get_selected: function (self) {
@@ -352,6 +387,13 @@ var ScreenObject = Class.extend({
     _set_selected: function (self, val) {
         self.old_selected = self._selected;
         self._selected = val;
+
+        if (self._selected) {
+            self.selected_color = self.board.get_color();
+        } else {
+            self.board.return_color(self.selected_color);
+            self.selected_color = null;
+        }
     }
 });
 
@@ -373,7 +415,9 @@ var Node = ScreenObject.extend({
     _set_selected: function (self, val) {
         self._super(val);
         if (self.selected && !self.old_selected) {
-            self.widget_elem = $('<li>Node</li>').appendTo('#selectedinfo');
+            self.widget_elem = $('<li><span style="color: #000;">Node</span></li>')
+                .css({'color': colorToHex(self.selected_color)})
+                .appendTo('#selectedinfo');
         } else if (!self.selected && self.old_selected) {
             if (self.widget_elem) {
                 self.widget_elem.remove();
@@ -400,7 +444,8 @@ var Node = ScreenObject.extend({
         ctx.stroke();
 
         if (self.selected) {
-            ctx.strokeStyle = 'rgb(255,0,0)';
+            ctx.strokeStyle = self.selected_color;
+            ctx.strokeWeight = 2;
             ctx.beginPath();
             ctx.arc(self.x, self.y, self.r + 3, 0, Math.PI*2, true);
             ctx.closePath();
@@ -516,7 +561,6 @@ var ProtoWire = ScreenObject.extend({
         console.log('Element.init');
 
         self.color = 'rgb(0,0,0)';
-        self.selected_color = 'rgb(255,0,0)';
     },
 
     draw: function(self) {
@@ -666,7 +710,9 @@ var Wire = ProtoWire.extend({
     _set_selected: function (self, val) {
         self._super(val);
         if (self.selected && !self.old_selected) {
-            self.widget_elem = $('<li>Wire</li>').appendTo('#selectedinfo');
+            self.widget_elem = $('<li><span style="color: #000;">Wire</span></li>')
+                .css({'color': colorToHex(self.selected_color)})
+                .appendTo('#selectedinfo');
         } else if (!self.selected && self.old_selected) {
             if (self.widget_elem) {
                 self.widget_elem.remove();
@@ -789,8 +835,10 @@ var Resistor = ProtoResistor.extend({
     _set_selected: function (self, val) {
         self._super(val);
         if (self.selected && !self.old_selected) {
-            self.widget_elem = $('<li></li>').appendTo('#selectedinfo');
-            $('<label>Resistance</label> <input type="text" value="{0}" size="1" />'.format(self.resistance))
+            self.widget_elem = $('<li></li>')
+                .css({'color': colorToHex(self.selected_color)})
+                .appendTo('#selectedinfo');
+            $('<label style="color: #000">Resistance</label> <input type="text" value="{0}" size="1" />'.format(self.resistance))
                 .bind('change', function (e) {
                     console.log('Changing resistance with ');
                     console.log(this);
