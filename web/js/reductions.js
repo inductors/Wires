@@ -454,6 +454,23 @@ var Reduction = Class.extend({
                 n.velocity = [n.velocity[0]*damping, n.velocity[1]*damping];
                 n.x += n.velocity[0];
                 n.y += n.velocity[1];
+
+                // keep nodes on the screen
+                if (n.x < 20) {
+                    n.velocity[0] -= (n.x - 20);
+                    n.x = 20;
+                } else if (n.x > 780) {
+                    n.velocity[0] -= (n.x - 780);
+                    n.x = 780;
+                }
+                if (n.y < 20) {
+                    n.velocity[1] -= (n.y - 20);
+                    n.y = 20;
+                } else if (n.y > 580) {
+                    n.velocity[1] -= (n.y - 580);
+                    n.y = 580;
+                }
+
                 kinetic += (Math.pow(n.velocity[0], 2) + Math.pow(n.velocity[1], 2));
             }
         } while (kinetic > kmax)
