@@ -63,6 +63,7 @@ var Reduction = Class.extend({
         var i, j; // iterator
         var e; // element
         var n; // node
+        var pw; // proto-wire
         var nodes = [], ignore_nodes = []; // node array
         var index; // integers
         console.log("prettify_collision");
@@ -88,10 +89,12 @@ var Reduction = Class.extend({
         for (i = 0; i < self.board.nodes.length; i++) {
             n = self.board.nodes[i];
             if (ignore_nodes.indexOf(n) == -1) {
-                if ((new ProtoWire(undefined, a, b)).hit_test(n.x, n.y)) {
+                if ((pw = new ProtoWire(self.board, a, b)).hit_test(n.x, n.y)) {
+                    pw.remove();
                     console.log("node collision detected");
                     return true;
                 }
+                pw.remove();
             }
         }
 
