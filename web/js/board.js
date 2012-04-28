@@ -539,6 +539,14 @@ var Node = ScreenObject.extend({
         r = k / Math.pow(r, 3);
         force = [(r * dist[0]), (r * dist[1])];
 
+        // in case nodes touch, and we divide by zero...
+        if (!((force[0] >= 0) || (force[0] <= 0))) {
+            force[0] = 0;
+        }
+        if (!((force[1] >= 0) || (force[1] <= 0))) {
+            force[1] = 0;
+        }
+
         return force;
     },
 
@@ -568,6 +576,14 @@ var Node = ScreenObject.extend({
         r = Math.sqrt(Math.pow(dist[0], 2) + Math.pow(dist[1], 2));
         r = (k * (ideal -r))/r;
         force = [(r * dist[0]), (r * dist[1])];
+
+        // in case nodes touch, and we divide by zero...
+        if (!((force[0] >= 0) || (force[0] <= 0))) {
+            force[0] = 0;
+        }
+        if (!((force[1] >= 0) || (force[1] <= 0))) {
+            force[1] = 0;
+        }
 
         return force;
     },
