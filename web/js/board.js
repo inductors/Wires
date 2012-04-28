@@ -279,7 +279,7 @@ var Board = Class.extend({
 	    self.replayAdd(action);
     },
 
-    undoOveride: function(self, action) {
+    undoOverride: function(self, action) {
 	    self.action = action;
         var text = self.serialize(false);
         console.log(self.curUndo);
