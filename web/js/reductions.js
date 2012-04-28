@@ -402,14 +402,18 @@ var Reduction = Class.extend({
     },
 
     prettify_force_graph: function(self) {
-        var i; // iterator
+        var i, j; // iterator
         var nodes = []; // node array
         var n; // node
         var resistors = []; // resistor array
-        var r; // resistor
+        var elements = []; // element array
+        var kinetic, kmax = 0.001; // kinetic energy
+        var force; // net forces on a node
+        var damping = 0.5; // damping force on nodes (aka friction)
 
-        for (i = 0; i < self.board.nodes.length; i++) {
-            self.prettify_node(self.board.nodes[i]);
+        nodes = self.board.nodes;
+        for (i = 0; i < nodes.length; i++) {
+            self.prettify_node(nodes[i]);
         }
 
         resistors = self.board.resistors();
@@ -419,7 +423,43 @@ var Reduction = Class.extend({
 
         // force-iterate
 
+        // reset forces
+        nodes = self.board.nodes;
+        for (i = 0; i < nodes.length; i++) {
+            nodes[i].velocity = [0,0];
+        }
+
+        do {
+            kinetic = 0;
+            // for every node
+            for (i = 0; i < nodes.length; i++) {
+                n = nodes[i];
+                force = [0,0];
+
+                for (j = 0; j < nodes.length; j++) {
+                    if (! (nodes[j] === n)) {
+                        force = self.vector_sum(force, n.coulomb(nodes[j]));
+                    }
+                }
+                
+                elements = n.elements();
+                for (j = 0; j < elements.length; j++) {
+                    force = self.vector_sum(force, n.hooke(elements[j]));
+                }
+
+                n.velocity = self.vector_sum(n.velocity, force);
+                n.velocity = [n.velocity[0]*damping, n.velocity[1]*damping];
+                n.x += n.velocity[0];
+                n.y += n.velocity[1];
+                kinetic += (Math.pow(n.velocity[0], 2) + Math.pow(n.velocity[1], 2));
+            }
+        } while (kinetic > kmax)
+
         return true;
+    },
+
+    vector_sum: function(self, a, b) {
+        return [(a[0] + b[0]), (a[1] + b[1])];
     },
 });
 

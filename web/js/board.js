@@ -528,6 +528,50 @@ var Node = ScreenObject.extend({
         return resistors;
     },
 
+    coulomb: function(self, node) {
+        var force = [0,0]; // force vector
+        var dist = [0,0]; // relative position vector
+        var r; // radius
+        var k = 100000; // proportionality constant
+
+        dist = [(self.x - node.x), (self.y - node.y)];
+        r = Math.sqrt(Math.pow(dist[0], 2) + Math.pow(dist[1], 2));
+        r = k / Math.pow(r, 3);
+        force = [(r * dist[0]), (r * dist[1])];
+
+        return force;
+    },
+
+    hooke: function(self, element) {
+        var force = [0, 0]; // force vector
+        var dist = [0, 0]; // relative position vector
+        var nodes = []; // node array
+        var r; // radius
+        var n; // node
+        var i; // iterator
+        var ideal = 100; // ideal length of resistors
+        var k = 0.1; // spring constant
+
+        nodes = element.nodes();
+        for (i = 0; i < nodes.length; i++) {
+            n = nodes[i]
+            if (!(n === self)) {
+                break;
+            }
+        }
+        
+        if ((n === self) || (nodes.length != 2)) {
+            return force;
+        }
+
+        dist = [(self.x - n.x), (self.y - n.y)];
+        r = Math.sqrt(Math.pow(dist[0], 2) + Math.pow(dist[1], 2));
+        r = (k * (ideal -r))/r;
+        force = [(r * dist[0]), (r * dist[1])];
+
+        return force;
+    },
+
     remove: function(self) {
         var index;
         index = self.board.nodes.indexOf(self);
