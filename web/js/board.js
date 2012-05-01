@@ -184,6 +184,11 @@ var Board = Class.extend({
         var p = getCursorPosition(e, $('#board'));
         e.real_x = p.x; e.real_y = p.y;
 
+        // clear kinetic prettification
+        if (self.force_tick) {
+            clearTimeout(self.force_tick);
+        }
+
         for (var i=0; i<self.elements.length; i++) {
             if (self.elements[i].hit_test(e.real_x, e.real_y)) {
                 self.drag_target = self.elements[i];
@@ -432,6 +437,7 @@ var Node = ScreenObject.extend({
         self.x = x;
         self.y = y;
         self.r = 5;
+        self.velocity = [0,0];
         self.elements1 = [];
         self.elements2 = [];
         self.hover = false;

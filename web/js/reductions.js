@@ -404,15 +404,10 @@ var Reduction = Class.extend({
         return true;
     },
 
-    prettify_force_graph: function(self) {
-        var i, j; // iterator
+    prettify_all: function(self) {
+        var i; // iterator
         var nodes = []; // node array
-        var n; // node
         var resistors = []; // resistor array
-        var elements = []; // element array
-        var kinetic, kmax = 0.001; // kinetic energy
-        var force; // net forces on a node
-        var damping = 0.5; // damping force on nodes (aka friction)
 
         nodes = self.board.nodes;
         for (i = 0; i < nodes.length; i++) {
@@ -424,58 +419,74 @@ var Reduction = Class.extend({
             self.prettify_resistor(resistors[i]);
         }
 
-        // force-iterate
-
-        // reset forces
-        nodes = self.board.nodes;
-        for (i = 0; i < nodes.length; i++) {
-            nodes[i].velocity = [0,0];
-        }
-
-        do {
-            kinetic = 0;
-            // for every node
-            for (i = 0; i < nodes.length; i++) {
-                n = nodes[i];
-                force = [0,0];
-
-                for (j = 0; j < nodes.length; j++) {
-                    if (! (nodes[j] === n)) {
-                        force = self.vector_sum(force, n.coulomb(nodes[j]));
-                    }
-                }
-                
-                elements = n.elements();
-                for (j = 0; j < elements.length; j++) {
-                    force = self.vector_sum(force, n.hooke(elements[j]));
-                }
-
-                n.velocity = self.vector_sum(n.velocity, force);
-                n.velocity = [n.velocity[0]*damping, n.velocity[1]*damping];
-                n.x += n.velocity[0];
-                n.y += n.velocity[1];
-
-                // keep nodes on the screen
-                if (n.x < self.board.snap_size) {
-                    n.velocity[0] -= (n.x - self.board.snap_size);
-                    n.x = self.board.snap_size;
-                } else if (n.x > (self.board.canvas.width - self.board.snap_size)) {
-                    n.velocity[0] -= (n.x - (self.board.canvas.width - self.board.snap_size));
-                    n.x = (self.board.canvas.width - self.board.snap_size);
-                }
-                if (n.y < self.board.snap_size) {
-                    n.velocity[1] -= (n.y - self.board.snap_size);
-                    n.y = self.board.snap_size;
-                } else if (n.y > (self.board.canvas.height - self.board.snap_size)) {
-                    n.velocity[1] -= (n.y - (self.board.canvas.height - self.board.snap_size));
-                    n.y = (self.board.canvas.height - self.board.snap_size);
-                }
-
-                kinetic += (Math.pow(n.velocity[0], 2) + Math.pow(n.velocity[1], 2));
-            }
-        } while (kinetic > kmax)
+        self.prettify_force_tick();
 
         return true;
+    },
+
+    prettify_force_tick: function(self) {
+        var i, j; // iterator
+        var nodes = []; // node array
+        var n; // node
+        var elements = []; // element array
+        var kinetic, kmax = 0.001; // kinetic energy
+        var force; // net forces on a node
+        var damping = 0.5; // damping force on nodes (aka friction)
+
+        nodes = self.board.nodes;
+
+        kinetic = 0;
+        // for every node
+        for (i = 0; i < nodes.length; i++) {
+            n = nodes[i];
+            force = [0,0];
+
+            for (j = 0; j < nodes.length; j++) {
+                if (! (nodes[j] === n)) {
+                    force = self.vector_sum(force, n.coulomb(nodes[j]));
+                }
+            }
+
+            elements = n.elements();
+            for (j = 0; j < elements.length; j++) {
+                force = self.vector_sum(force, n.hooke(elements[j]));
+            }
+
+            n.velocity = self.vector_sum(n.velocity, force);
+            n.velocity = [n.velocity[0]*damping, n.velocity[1]*damping];
+            n.x += n.velocity[0];
+            n.y += n.velocity[1];
+
+            // keep nodes on the screen
+            if (n.x < self.board.snap_size) {
+                n.velocity[0] -= (n.x - self.board.snap_size);
+                n.x = self.board.snap_size;
+            } else if (n.x > (self.board.canvas.width - self.board.snap_size)) {
+                n.velocity[0] -= (n.x - (self.board.canvas.width - self.board.snap_size));
+                n.x = (self.board.canvas.width - self.board.snap_size);
+            }
+            if (n.y < self.board.snap_size) {
+                n.velocity[1] -= (n.y - self.board.snap_size);
+                n.y = self.board.snap_size;
+            } else if (n.y > (self.board.canvas.height - self.board.snap_size)) {
+                n.velocity[1] -= (n.y - (self.board.canvas.height - self.board.snap_size));
+                n.y = (self.board.canvas.height - self.board.snap_size);
+            }
+
+            kinetic += (Math.pow(n.velocity[0], 2) + Math.pow(n.velocity[1], 2));
+        }
+
+        if (kinetic > kmax) {
+            self.board.force_tick = setTimeout($.proxy(self.prettify_force_tick, self), 33);
+        } else if (self.board.snap) {
+            for (i = 0; i < nodes.length; i++) {
+                n = nodes[i];
+                n.x = Math.round(n.x/self.board.snap_size)*self.board.snap_size;
+                n.y = Math.round(n.y/self.board.snap_size)*self.board.snap_size;
+            }
+        }
+
+        return kinetic;
     },
 
     vector_sum: function(self, a, b) {
@@ -918,7 +929,7 @@ var PrettifyReduction = Reduction.extend({
     */
     reduce: function(self, resistors) {
         self._super(resistors);
-        self.prettify_force_graph();
+        self.prettify_all();
         self.board.undoAdd();
     },
 });
