@@ -478,12 +478,15 @@ var Reduction = Class.extend({
 
         if (kinetic > kmax) {
             self.board.force_tick = setTimeout($.proxy(self.prettify_force_tick, self), 33);
-        } else if (self.board.snap) {
-            for (i = 0; i < nodes.length; i++) {
-                n = nodes[i];
-                n.x = Math.round(n.x/self.board.snap_size)*self.board.snap_size;
-                n.y = Math.round(n.y/self.board.snap_size)*self.board.snap_size;
+        } else {
+            if (self.board.snap) {
+                for (i = 0; i < nodes.length; i++) {
+                    n = nodes[i];
+                    n.x = Math.round(n.x/self.board.snap_size)*self.board.snap_size;
+                    n.y = Math.round(n.y/self.board.snap_size)*self.board.snap_size;
+                }
             }
+            self.board.undoAdd();
         }
 
         return kinetic;
