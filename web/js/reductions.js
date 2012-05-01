@@ -456,19 +456,19 @@ var Reduction = Class.extend({
                 n.y += n.velocity[1];
 
                 // keep nodes on the screen
-                if (n.x < 20) {
-                    n.velocity[0] -= (n.x - 20);
-                    n.x = 20;
-                } else if (n.x > 780) {
-                    n.velocity[0] -= (n.x - 780);
-                    n.x = 780;
+                if (n.x < self.board.snap_size) {
+                    n.velocity[0] -= (n.x - self.board.snap_size);
+                    n.x = self.board.snap_size;
+                } else if (n.x > (self.board.canvas.width - self.board.snap_size)) {
+                    n.velocity[0] -= (n.x - (self.board.canvas.width - self.board.snap_size));
+                    n.x = (self.board.canvas.width - self.board.snap_size);
                 }
-                if (n.y < 20) {
-                    n.velocity[1] -= (n.y - 20);
-                    n.y = 20;
-                } else if (n.y > 580) {
-                    n.velocity[1] -= (n.y - 580);
-                    n.y = 580;
+                if (n.y < self.board.snap_size) {
+                    n.velocity[1] -= (n.y - self.board.snap_size);
+                    n.y = self.board.snap_size;
+                } else if (n.y > (self.board.canvas.height - self.board.snap_size)) {
+                    n.velocity[1] -= (n.y - (self.board.canvas.height - self.board.snap_size));
+                    n.y = (self.board.canvas.height - self.board.snap_size);
                 }
 
                 kinetic += (Math.pow(n.velocity[0], 2) + Math.pow(n.velocity[1], 2));
