@@ -161,6 +161,8 @@ var WireTool = Tool.extend({
         self.make_elem();
         self.line_proto = ProtoWire;
         self.line_type = Wire;
+
+        self.state = {};
     },
 
     make_elem: function(self) {
@@ -176,47 +178,46 @@ var WireTool = Tool.extend({
         console.log('WireTool.dragstart');
         self._super(x, y, id, target);
         var p = self.board.snap_to(x, y);
-        if (self.temp_line) {
-            // Why do we still have one of these?
-            self.temp_line.remove();
-            self.temp_line = null;
-        }
         if (target && target.type == "node") {
-            self.temp_end_node = {'x': x, 'y': y};
-            self.temp_line = new self.line_proto(self.board, target, self.temp_end_node, 1);
+            if (self.state[id] === undefined) {
+                self.state[id] = {};
+            }
+            self.state[id].temp_end_node = {'x': x, 'y': y};
+            self.state[id].temp_line = new self.line_proto(self.board, target,
+                self.state[id].temp_end_node, 1);
         }
     },
 
     drag: function(self, x, y, id, target) {
         self._super(x, y, id, target);
-        if (self.temp_end_node) {
-            self.temp_end_node.x = x;
-            self.temp_end_node.y = y;
+        if (self.state[id]) {
+            self.state[id].temp_end_node.x = x;
+            self.state[id].temp_end_node.y = y;
         }
     },
 
     dragend: function(self, x, y, id, target) {
         console.log('WireTool.dragend');
         self._super(x, y, id, target);
+
         var hit = false;
         for (var i=0; i<self.board.nodes.length; i++) {
             var it = self.board.nodes[i];
             if (it.type == 'node' && it.hit_test(x, y)) {
-                if (it != self.temp_line.n1) {
-                    new self.line_type(self.board, self.temp_line.n1, it, 1);
-                    self.temp_line.remove();
+                if (it != self.state[id].temp_line.n1) {
+                    new self.line_type(self.board, self.state[id].temp_line.n1, it, 1);
+                    self.state[id].temp_line.remove();
                     hit = true;
                 }
                 break;
             }
         }
         if (!hit) {
-            self.temp_line.remove();
+            self.state[id].temp_line.remove();
         } else {
             self.board.undoAdd();
         }
-        self.temp_line = null;
-        self.temp_end_node = null;
+        self.state[id] = undefined;
     },
 });
 

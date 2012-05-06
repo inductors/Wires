@@ -735,6 +735,9 @@ var ProtoWire = ScreenObject.extend({
     type: "protowire",
 
     init: function(self, board, n1, n2) {
+        if (n1 === n2) {
+            throw "Cannot create wire where start and end node are the same";
+        }
         self._super(board);
         self.n1 = n1;
         self.n2 = n2;
