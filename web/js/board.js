@@ -50,7 +50,11 @@ var Board = Class.extend({
         $('#board').bind('mousedown', $.proxy(self.mousedown, self));
         $('#board').bind('mousemove', $.proxy(self.mousemove, self));
         $('#board').bind('mouseup', $.proxy(self.mouseup, self));
-        $('#board').bind('mousedown', $.proxy(self.mousedown, self));
+
+        $('#board').bind('touchstart', $.proxy(self.touchstart, self));
+        $('#board').bind('touchmove', $.proxy(self.touchmove, self));
+        $('#board').bind('touchend', $.proxy(self.touchend, self));
+        $('#board').bind('touchcancel', $.proxy(self.touchcancel, self));
 
         $('#snap').bind('change', function(e) {
             self.snap = $(this).prop('checked');
@@ -175,14 +179,19 @@ var Board = Class.extend({
         $(self.cur_tool.elem).addClass('active');
     },
 
-    mousedown: function(self, e) {
-        console.log('mousedown');
+    /************ MOUSE/TOUCH EVENTS ************/
+
+    /* This function handles the events of mouse/touch down.
+     * - x, y: The location of the event.
+     * - id: Uniquely represents this touch from all other current events. For
+     *   mouse events, should be 'mouse'. This id is used to correlate events.
+     *   The only requirement of this parameter is that it can be used as a
+     *   key in an object.
+     */
+    ondown: function(self, x, y, id) {
         if (!self.cur_tool) {
-            console.log("No tool selected. self.cur_tool=" + self.cur_tool)
-            return;
+            throw "No tool selected. self.cur_tool=" + self.cur_tool;
         }
-        var p = getCursorPosition(e, $('#board'));
-        e.real_x = p.x; e.real_y = p.y;
 
         // clear kinetic prettification
         if (self.force_tick) {
@@ -190,64 +199,146 @@ var Board = Class.extend({
         }
 
         for (var i=0; i<self.elements.length; i++) {
-            if (self.elements[i].hit_test(e.real_x, e.real_y)) {
+            if (self.elements[i].hit_test(x, y)) {
                 self.drag_target = self.elements[i];
                 self.drag = 1;
             }
         }
         for (var i=0; i<self.nodes.length; i++) {
-            if (self.nodes[i].hit_test(e.real_x, e.real_y)) {
+            if (self.nodes[i].hit_test(x, y)) {
                 self.drag_target = self.nodes[i];
                 self.drag = 1;
             }
         }
-        self.cur_tool.mousedown(e, self.drag_target);
+        self.cur_tool.down(x, y, id, self.drag_target);
     },
 
-    mousemove: function(self, e) {
+    /* This function handles the events of mouse/touch up.
+     * - x, y: The location of the event.
+     * - id: Uniquely represents this touch from all other current events. For
+     *   mouse events, should be 'mouse'. This id is used to correlate events.
+     *   The only requirement of this parameter is that it can be used as a
+     *   key in an object.
+     */
+    onup: function(self, x, y, id) {
         if (!self.cur_tool) {
-            return;
+            throw "No tool selected. self.cur_tool=" + self.cur_tool;
         }
-        var p = getCursorPosition(e, $('#board'));
-        e.real_x = p.x; e.real_y = p.y;
-
-        for (var i=0; i<self.elements.length; i++) {
-            var d = self.elements[i];
-            d.hover = d.hit_test(e.real_x, e.real_y);
-        }
-        for (var i=0; i<self.nodes.length; i++) {
-            var d = self.nodes[i];
-            d.hover = d.hit_test(e.real_x, e.real_y);
-        }
-
-        if (self.drag == 0) {
-            self.cur_tool.mousemove(e);
-        }
-        if (self.drag == 1) {
-            self.drag = 2;
-            self.cur_tool.dragstart(e, self.drag_target);
-        }
-        if (self.drag == 2) {
-            self.cur_tool.drag(e, self.drag_target);
-        }
-    },
-
-    mouseup: function(self, e) {
-        if (!self.cur_tool) {
-            return;
-        }
-        var p = getCursorPosition(e, $('#board'));
-        e.real_x = p.x; e.real_y = p.y;
 
         if (self.drag >= 2) {
-            self.cur_tool.dragend(e, self.drag_target);
+            self.cur_tool.dragend(x, y, id, self.drag_target);
         } else {
-            self.cur_tool.click(e, self.drag_target);
+            self.cur_tool.click(x, y, id, self.drag_target);
         }
-        self.cur_tool.mouseup(e, self.drag_target);
+        self.cur_tool.up(x, y, id, self.drag_target);
 
         self.drag = 0;
         self.drag_target = null;
+    },
+
+    /* This function handles the events of move/drag events. In the case of a
+     * mouse, it knows how to pay attention to moves vs drags.
+     * - x, y: The location of the event.
+     * - id: Uniquely represents this touch from all other current events. For
+     *   mouse events, should be 'mouse'. This id is used to correlate events.
+     *   The only requirement of this parameter is that it can be used as a
+     *   key in an object.
+     */
+    onmove: function(self, x, y, id) {
+        if (!self.cur_tool) {
+            throw "No tool selected. self.cur_tool=" + self.cur_tool;
+        }
+
+        for (var i=0; i<self.elements.length; i++) {
+            var d = self.elements[i];
+            d.hover = d.hit_test(x, y);
+        }
+        for (var i=0; i<self.nodes.length; i++) {
+            var d = self.nodes[i];
+            d.hover = d.hit_test(x, y);
+        }
+
+        console.log("move");
+
+        if (self.drag == 0) {
+            console.log("move");
+            self.cur_tool.move(x, y, id);
+        } else if (self.drag == 1) {
+            console.log("dragstart");
+            self.drag = 2;
+            self.cur_tool.dragstart(x, y, id, self.drag_target);
+        } else if (self.drag == 2) {
+            console.log("drag");
+            self.cur_tool.drag(x, y, id, self.drag_target);
+        }
+    },
+
+    /* Handle the event of a mouse click. Translate to a 'down' event. */
+    mousedown: function(self, e) {
+        var p = getCursorPosition(e, $('#board'));
+        self.ondown(p.x, p.y, 'mouse');
+    },
+
+    mouseup: function(self, e) {
+        var p = getCursorPosition(e, $('#board'));
+        self.onup(p.x, p.y, 'mouse');
+    },
+
+    /* Handle the event of mouse motion. This is either a 'drag' event or a
+     * 'move' event, depending on if the mouse button is held down (or in the
+     * case of a touch device, a finger is dragged across the screen). */
+    mousemove: function(self, e) {
+        var p = getCursorPosition(e, $('#board'));
+        self.onmove(p.x, p.y, 'mouse');
+    },
+
+    touchstart: function(self, e) {
+        var event = e.originalEvent;
+
+        if (event.changedTouches === undefined) {
+            throw "Got touch event with unknown API. Giving up.";
+        }
+
+        for (var i=0; i < event.changedTouches.length; i++) {
+            var touch = event.changedTouches[i];
+            var p = getCursorPosition(touch, $('#board'));
+            self.ondown(p.x, p.y, touch.identifer);
+        }
+
+        event.preventDefault();
+    },
+
+    touchmove: function(self, e) {
+        var event = e.originalEvent;
+        console.log("touchmove");
+
+        if (event.changedTouches === undefined) {
+            throw "Got touch event with unknown API. Giving up.";
+        }
+
+        for (var i=0; i < event.changedTouches.length; i++) {
+            var touch = event.changedTouches[i];
+            var p = getCursorPosition(touch, $('#board'));
+            self.onmove(p.x, p.y, touch.identifer);
+        }
+
+        event.preventDefault();
+    },
+
+    touchend: function(self, e) {
+        var event = e.originalEvent;
+
+        if (event.changedTouches === undefined) {
+            throw "Got touch event with unknown API. Giving up.";
+        }
+
+        for (var i=0; i < event.changedTouches.length; i++) {
+            var touch = event.changedTouches[i];
+            var p = getCursorPosition(touch, $('#board'));
+            self.onup(p.x, p.y, touch.identifer);
+        }
+
+        event.preventDefault();
     },
 
     snap_to: function(self, x, y) {
@@ -270,6 +361,8 @@ var Board = Class.extend({
 
         return {'x': x, 'y': y};
     },
+
+    /******************** UNDO FUNCTIONS ********************/
 
     undoAdd: function(self, action) {
         self.action = action;

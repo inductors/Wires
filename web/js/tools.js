@@ -5,9 +5,9 @@ var Tool = Class.extend({
         self.board = board;
     },
 
-    mousedown: function() {},
-    mouseup: function() {},
-    mousemove: function() {},
+    down: function() {},
+    up: function() {},
+    move: function() {},
     click: function() {},
     dragstart: function() {},
     drag: function() {},
@@ -28,8 +28,8 @@ var MoveTool = Tool.extend({
         );
     },
 
-    click: function(self, e, target) {
-        self._super(e, target);
+    click: function(self, x, y, id, target) {
+        self._super(x, y, id, target);
 
         if (target) {
             // toggle
@@ -43,10 +43,10 @@ var MoveTool = Tool.extend({
         }
     },
 
-    dragstart: function(self, e, target) {
+    dragstart: function(self, x, y, id, target) {
         if (target) {
-            self.last_drag_x = e.real_x;
-            self.last_drag_y = e.real_y;
+            self.last_drag_x = x;
+            self.last_drag_y = y;
 
             // If we clicked on a non-selected element, unselect everything and
             // select it.
@@ -83,10 +83,10 @@ var MoveTool = Tool.extend({
         }
     },
 
-    drag: function(self, e, target) {
+    drag: function(self, x, y, id, target) {
         if (target) {
-            var dx = e.real_x - self.last_drag_x;
-            var dy = e.real_y - self.last_drag_y;
+            var dx = x - self.last_drag_x;
+            var dy = y - self.last_drag_y;
 
             if (self.board.snap) {
                 dx -= dx % self.board.snap_size;
@@ -133,10 +133,10 @@ var NodeTool = Tool.extend({
         );
     },
 
-    click: function(self, e, target) {
+    click: function(self, x, y, id, target) {
         console.log('NodeTool.click');
-        self._super(e, target);
-        var p = self.board.snap_to(e.real_x, e.real_y);
+        self._super(x, y, id, target);
+        var p = self.board.snap_to(x, y);
         var n = new Node(self.board, p.x, p.y);
         self.board.undoAdd();
     },
@@ -161,36 +161,36 @@ var WireTool = Tool.extend({
         );
     },
 
-    dragstart: function(self, e, target) {
+    dragstart: function(self, x, y, id, target) {
         console.log('WireTool.dragstart');
-        self._super(e, target);
-        var p = self.board.snap_to(e.real_x, e.real_y);
+        self._super(x, y, id, target);
+        var p = self.board.snap_to(x, y);
         if (self.temp_line) {
             // Why do we still have one of these?
             self.temp_line.remove();
             self.temp_line = null;
         }
         if (target && target.type == "node") {
-            self.temp_end_node = {'x': e.real_x, 'y': e.real_y};
+            self.temp_end_node = {'x': x, 'y': y};
             self.temp_line = new self.line_proto(self.board, target, self.temp_end_node, 1);
         }
     },
 
-    drag: function(self, e, target) {
-        self._super(e, target);
+    drag: function(self, x, y, id, target) {
+        self._super(x, y, id, target);
         if (self.temp_end_node) {
-            self.temp_end_node.x = e.real_x;
-            self.temp_end_node.y = e.real_y;
+            self.temp_end_node.x = x;
+            self.temp_end_node.y = y;
         }
     },
 
-    dragend: function(self, e, target) {
+    dragend: function(self, x, y, id, target) {
         console.log('WireTool.dragend');
-        self._super(e, target);
+        self._super(x, y, id, target);
         var hit = false;
         for (var i=0; i<self.board.nodes.length; i++) {
             var it = self.board.nodes[i];
-            if (it.type == 'node' && it.hit_test(e.real_x, e.real_y)) {
+            if (it.type == 'node' && it.hit_test(x, y)) {
                 if (it != self.temp_line.n1) {
                     new self.line_type(self.board, self.temp_line.n1, it, 1);
                     self.temp_line.remove();
