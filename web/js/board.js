@@ -36,8 +36,7 @@ var Board = Class.extend({
 	    self.record = false;
 	    self.action = "Initial State";
 
-        self.drag = 0;
-        self.drag_target = null;
+        self.drag = {};
 
         self.canvas = document.getElementById('board');
         self.ctx = self.canvas.getContext('2d');
@@ -190,7 +189,11 @@ var Board = Class.extend({
      */
     ondown: function(self, x, y, id) {
         if (!self.cur_tool) {
-            throw "No tool selected. self.cur_tool=" + self.cur_tool;
+            throw "No tool selected."
+        }
+
+        if (self.drag[id] === undefined) {
+            self.drag[id] = {};
         }
 
         // clear kinetic prettification
@@ -200,17 +203,18 @@ var Board = Class.extend({
 
         for (var i=0; i<self.elements.length; i++) {
             if (self.elements[i].hit_test(x, y)) {
-                self.drag_target = self.elements[i];
-                self.drag = 1;
+                self.drag[id].target = self.elements[i];
+                self.drag[id].status = 1
             }
         }
         for (var i=0; i<self.nodes.length; i++) {
             if (self.nodes[i].hit_test(x, y)) {
-                self.drag_target = self.nodes[i];
-                self.drag = 1;
+                self.drag[id].target = self.nodes[i];
+                self.drag[id].status = 1
             }
         }
-        self.cur_tool.down(x, y, id, self.drag_target);
+
+        self.cur_tool.down(x, y, id, self.drag[id].target);
     },
 
     /* This function handles the events of mouse/touch up.
@@ -222,18 +226,18 @@ var Board = Class.extend({
      */
     onup: function(self, x, y, id) {
         if (!self.cur_tool) {
-            throw "No tool selected. self.cur_tool=" + self.cur_tool;
+            throw "No tool selected."
         }
 
-        if (self.drag >= 2) {
-            self.cur_tool.dragend(x, y, id, self.drag_target);
+        if (self.drag[id].status >= 2) {
+            self.cur_tool.dragend(x, y, id, self.drag[id].target);
         } else {
-            self.cur_tool.click(x, y, id, self.drag_target);
+            self.cur_tool.click(x, y, id, self.drag[id].target);
         }
-        self.cur_tool.up(x, y, id, self.drag_target);
+        self.cur_tool.up(x, y, id, self.drag[id].target);
 
-        self.drag = 0;
-        self.drag_target = null;
+        self.drag[id].status = 0;
+        self.drag[id].target = null;
     },
 
     /* This function handles the events of move/drag events. In the case of a
@@ -246,7 +250,7 @@ var Board = Class.extend({
      */
     onmove: function(self, x, y, id) {
         if (!self.cur_tool) {
-            throw "No tool selected. self.cur_tool=" + self.cur_tool;
+            throw "No tool selected.";
         }
 
         for (var i=0; i<self.elements.length; i++) {
@@ -258,18 +262,13 @@ var Board = Class.extend({
             d.hover = d.hit_test(x, y);
         }
 
-        console.log("move");
-
-        if (self.drag == 0) {
-            console.log("move");
+        if (self.drag[id].status == 0) {
             self.cur_tool.move(x, y, id);
-        } else if (self.drag == 1) {
-            console.log("dragstart");
-            self.drag = 2;
-            self.cur_tool.dragstart(x, y, id, self.drag_target);
-        } else if (self.drag == 2) {
-            console.log("drag");
-            self.cur_tool.drag(x, y, id, self.drag_target);
+        } else if (self.drag[id].status == 1) {
+            self.drag[id].status = 2;
+            self.cur_tool.dragstart(x, y, id, self.drag[id].target);
+        } else if (self.drag[id].status == 2) {
+            self.cur_tool.drag(x, y, id, self.drag[id].target);
         }
     },
 
@@ -302,7 +301,7 @@ var Board = Class.extend({
         for (var i=0; i < event.changedTouches.length; i++) {
             var touch = event.changedTouches[i];
             var p = getCursorPosition(touch, $('#board'));
-            self.ondown(p.x, p.y, touch.identifer);
+            self.ondown(p.x, p.y, touch.identifier);
         }
 
         event.preventDefault();
@@ -319,7 +318,7 @@ var Board = Class.extend({
         for (var i=0; i < event.changedTouches.length; i++) {
             var touch = event.changedTouches[i];
             var p = getCursorPosition(touch, $('#board'));
-            self.onmove(p.x, p.y, touch.identifer);
+            self.onmove(p.x, p.y, touch.identifier);
         }
 
         event.preventDefault();
@@ -335,7 +334,7 @@ var Board = Class.extend({
         for (var i=0; i < event.changedTouches.length; i++) {
             var touch = event.changedTouches[i];
             var p = getCursorPosition(touch, $('#board'));
-            self.onup(p.x, p.y, touch.identifer);
+            self.onup(p.x, p.y, touch.identifier);
         }
 
         event.preventDefault();

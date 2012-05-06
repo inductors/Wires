@@ -26,6 +26,8 @@ var MoveTool = Tool.extend({
                 self.board.set_tool(self);
             }
         );
+
+        self.state = {}
     },
 
     click: function(self, x, y, id, target) {
@@ -45,8 +47,10 @@ var MoveTool = Tool.extend({
 
     dragstart: function(self, x, y, id, target) {
         if (target) {
-            self.last_drag_x = x;
-            self.last_drag_y = y;
+            if (self.state[id] === undefined) {
+                self.state[id] = {};
+            }
+            self.state[id].last_drag = {'x': x, 'y': y};
 
             // If we clicked on a non-selected element, unselect everything and
             // select it.
@@ -60,22 +64,23 @@ var MoveTool = Tool.extend({
                 target.selected = true;
             }
 
+            self.state[id].claim = [];
+            var selected = self.board.selected();
+            for (var i=0; i<selected.length; i++) {
+                var elem = selected[i];
+                if (!elem.claimed) {
+                    self.state[id].claim.push(elem);
+                    elem.claimed = true;
+                }
+            }
+
             // Make snapping cool.
             if (self.board.snap) {
                 var p = self.board.snap_to(target.x, target.y);
-                for (var i=0; i<self.board.nodes.length; i++) {
-                    var it = self.board.nodes[i];
-                    if (it.selected) {
-                        it.x += p.x - target.x;
-                        it.y += p.y - target.y;
-                    }
-                }
-                for (var i=0; i<self.board.elements.length; i++) {
-                    var it = self.board.elements[i];
-                    if (it.selected) {
-                        it.x += p.x - target.x;
-                        it.y += p.y - target.y;
-                    }
+                for (var i=0; i<self.state[id].claim.length; i++) {
+                    var elem = self.state[id].claim[i];
+                    elem.x += p.x - target.x;
+                    elem.y += p.y - target.y;
                 }
                 target.x = p.x;
                 target.y = p.y;
@@ -84,39 +89,45 @@ var MoveTool = Tool.extend({
     },
 
     drag: function(self, x, y, id, target) {
+        console.log('arrow tool.drag, id=' + id);
         if (target) {
-            var dx = x - self.last_drag_x;
-            var dy = y - self.last_drag_y;
+            var dx = x - self.state[id].last_drag.x;
+            var dy = y - self.state[id].last_drag.y;
 
             if (self.board.snap) {
                 dx -= dx % self.board.snap_size;
                 dy -= dy % self.board.snap_size;
             }
 
-            for (var i=0; i<self.board.nodes.length; i++) {
-                if (self.board.nodes[i].selected) {
-                    self.board.nodes[i].x += dx;
-                    self.board.nodes[i].y += dy;
-                }
-            }
-            for (var i=0; i<self.board.elements.length; i++) {
-                if (self.board.elements[i].selected) {
-                    var n1 = self.board.elements[i].n1;
-                    var n2 = self.board.elements[i].n2;
-                    if (!n1.selected) {
+            for (var i=0; i<self.state[id].claim.length; i++) {
+                var elem = self.state[id].claim[i];
+                if (elem.type == 'node') {
+                    self.state[id].claim[i].x += dx;
+                    self.state[id].claim[i].y += dy;
+                } else {
+                    var n1 = self.state[id].claim[i].n1;
+                    var n2 = self.state[id].claim[i].n2;
+                    if (self.state[id].claim.indexOf(n1) == -1) {
                         n1.x += dx;
                         n1.y += dy;
                     }
-                    if (!n2.selected) {
+                    if (self.state[id].claim.indexOf(n2) == -1) {
                         n2.x += dx;
                         n2.y += dy;
                     }
                 }
             }
 
-            self.last_drag_x += dx;
-            self.last_drag_y += dy;
+            self.state[id].last_drag.x += dx;
+            self.state[id].last_drag.y += dy;
         }
+    },
+
+    dragend: function(self, x, y, id, target) {
+        for (var i=0; i<self.state[id].claim.length; i++) {
+            self.state[id].claim[i].claimed = false;
+        }
+        self.state[id] = undefined;
     },
 });
 
