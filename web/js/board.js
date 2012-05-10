@@ -33,8 +33,8 @@ var Board = Class.extend({
         self.undoLog = [];
         self.curUndo = -1;
         self.replayLog = [];
-	    self.record = false;
-	    self.action = "Initial State";
+        self.record = false;
+        self.action = "Initial State";
 
         self.drag = {};
 
@@ -373,17 +373,16 @@ var Board = Class.extend({
             self.undoLog.pop();
         }
         self.undoLog.push(text);
-	    self.replayAdd(action);
     },
 
     undoOverride: function(self, action) {
-	    self.action = action;
+        self.action = action;
         var text = self.serialize(false);
         console.log(self.curUndo);
-	    self.undoLog[self.curUndo] = text;
-	    self.replayAdd(action);
-    },    
-    
+        self.undoLog[self.curUndo] = text;
+        self.replayAdd(action);
+    },
+
     undo: function(self) {
         self.curUndo--;
         console.log(self.curUndo);
@@ -392,7 +391,7 @@ var Board = Class.extend({
             self.curUndo = 0;
         }
         self.deserialize(self.undoLog[self.curUndo], false);
-	    self.replayAdd("Undoing");
+        self.replayAdd("Undoing");
     },
 
     redo: function(self) {
@@ -403,18 +402,18 @@ var Board = Class.extend({
             self.curUndo = self.undoLog.length-1;
         }
         self.deserialize(self.undoLog[self.curUndo], false);
-	    self.replayAdd("Redoing");
+        self.replayAdd("Redoing");
     },
 
     replayAdd: function(self, action) {
         if (self.record == false){
             return;
         }
-	    self.action = action;
+        self.action = action;
         var text = self.serialize(false);
         self.replayLog.push(text);
     },
-    
+
     serialize: function(self, full) {
         for (var i=0; i<self.nodes.length; i++) {
             self.nodes[i].id = i;
@@ -447,7 +446,7 @@ var Board = Class.extend({
         for (var i=0; i<boardData.nodes.length; i++) {
             new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
             self.nodes[i].notes = boardData.nodes[i].notes;
-	    self.nodes[i].selected = boardData.nodes[i].selected;
+        self.nodes[i].selected = boardData.nodes[i].selected;
         }
         for (var i=0; i<boardData.elements.length; i++) {
             var n1 = self.nodes[boardData.elements[i].n1_id];
@@ -460,7 +459,7 @@ var Board = Class.extend({
                 new Resistor(self, n1, n2, r);
             }
             self.elements[i].notes = boardData.elements[i].notes;
-	    self.elements[i].selected = boardData.elements[i].selected;
+        self.elements[i].selected = boardData.elements[i].selected;
         }
         if (full == true) {
             self.undoLog = []
@@ -469,7 +468,7 @@ var Board = Class.extend({
             }
             self.curUndo = boardData.curUndo;
         }
-	    self.action = boardData.action;
+        self.action = boardData.action;
     },
 
     get_color: function(self) {
@@ -692,7 +691,7 @@ var Node = ScreenObject.extend({
                 break;
             }
         }
-        
+
         if ((n === self) || (nodes.length != 2)) {
             return force;
         }
