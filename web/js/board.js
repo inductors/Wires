@@ -262,6 +262,9 @@ var Board = Class.extend({
             d.hover = d.hit_test(x, y);
         }
 
+        if (self.drag[id] == undefined) {
+            self.drag[id] = {};
+        }
         if (self.drag[id].status == 0) {
             self.cur_tool.move(x, y, id);
         } else if (self.drag[id].status == 1) {
@@ -309,7 +312,6 @@ var Board = Class.extend({
 
     touchmove: function(self, e) {
         var event = e.originalEvent;
-        console.log("touchmove");
 
         if (event.changedTouches === undefined) {
             throw "Got touch event with unknown API. Giving up.";
@@ -367,7 +369,6 @@ var Board = Class.extend({
         self.action = action;
         var text = self.serialize(false);
         self.curUndo++;
-        console.log(self.curUndo);
         var diff = self.undoLog.length - self.curUndo;
         for (var i=0; i<diff; i++) {
             self.undoLog.pop();
@@ -378,15 +379,12 @@ var Board = Class.extend({
     undoOverride: function(self, action) {
         self.action = action;
         var text = self.serialize(false);
-        console.log(self.curUndo);
         self.undoLog[self.curUndo] = text;
         self.replayAdd(action);
     },
 
     undo: function(self) {
         self.curUndo--;
-        console.log(self.curUndo);
-        console.log(self.undoLog[self.curUndo]);
         if (self.curUndo < 0) {
             self.curUndo = 0;
         }
@@ -396,8 +394,6 @@ var Board = Class.extend({
 
     redo: function(self) {
         self.curUndo++;
-        console.log(self.curUndo);
-        console.log(self.undoLog[self.curUndo]);
         if (self.curUndo > (self.undoLog.length-1)) {
             self.curUndo = self.undoLog.length-1;
         }
@@ -427,7 +423,6 @@ var Board = Class.extend({
             keys = keys.concat(['undoLog', 'curUndo']);
         }
         var text = JSON.stringify(self, keys);
-        console.log(text);
         return text;
     },
 
@@ -476,7 +471,6 @@ var Board = Class.extend({
             return 'rgb(255, 255, 255)';
         }
         var c = self.colors.pop();
-        console.log('Giving out {0}'.format(c));
         return c;
     },
 
@@ -745,7 +739,6 @@ var ProtoWire = ScreenObject.extend({
         if (board) {
             self.board.elements.push(self);
         }
-        console.log('Element.init');
 
         self.color = 'rgb(0,0,0)';
     },
@@ -1027,8 +1020,6 @@ var Resistor = ProtoResistor.extend({
                 .appendTo('#selectedinfo');
             $('<label style="color: #000">Resistance</label> <input type="text" value="{0}" size="1" />'.format(self.resistance))
                 .bind('change', function (e) {
-                    console.log('Changing resistance with ');
-                    console.log(this);
                     self.resistance = parseFloat($(this).val());
                 })
                 .appendTo(self.widget_elem)

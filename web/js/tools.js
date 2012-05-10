@@ -89,7 +89,6 @@ var MoveTool = Tool.extend({
     },
 
     drag: function(self, x, y, id, target) {
-        console.log('arrow tool.drag, id=' + id);
         if (target) {
             var dx = x - self.state[id].last_drag.x;
             var dy = y - self.state[id].last_drag.y;
@@ -145,7 +144,6 @@ var NodeTool = Tool.extend({
     },
 
     click: function(self, x, y, id, target) {
-        console.log('NodeTool.click');
         self._super(x, y, id, target);
         var p = self.board.snap_to(x, y);
         var n = new Node(self.board, p.x, p.y);
@@ -175,7 +173,6 @@ var WireTool = Tool.extend({
     },
 
     dragstart: function(self, x, y, id, target) {
-        console.log('WireTool.dragstart');
         self._super(x, y, id, target);
         var p = self.board.snap_to(x, y);
         if (target && target.type == "node") {
@@ -197,7 +194,6 @@ var WireTool = Tool.extend({
     },
 
     dragend: function(self, x, y, id, target) {
-        console.log('WireTool.dragend');
         self._super(x, y, id, target);
 
         var hit = false;
