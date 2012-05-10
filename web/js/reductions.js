@@ -486,7 +486,6 @@ var Reduction = Class.extend({
                     n.y = Math.round(n.y/self.board.snap_size)*self.board.snap_size;
                 }
             }
-            self.board.undoAdd();
         }
 
         return kinetic;

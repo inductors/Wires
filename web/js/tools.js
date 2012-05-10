@@ -119,6 +119,8 @@ var MoveTool = Tool.extend({
 
             self.state[id].last_drag.x += dx;
             self.state[id].last_drag.y += dy;
+
+            self.board.undoAddTimed('move', 30e3);
         }
     },
 

@@ -367,6 +367,7 @@ var Board = Class.extend({
 
     undoAdd: function(self, action) {
         self.action = action;
+        self.lastUndoAdded = {'time': +new Date(), 'action': action};
         var text = self.serialize(false);
         self.curUndo++;
         var diff = self.undoLog.length - self.curUndo;
@@ -374,10 +375,27 @@ var Board = Class.extend({
             self.undoLog.pop();
         }
         self.undoLog.push(text);
+        self.replayAdd(action);
+    },
+
+    /* Add an undo state. If the most recent undo was another instance of this,
+     * and happened less than timeout milliseconds ago, merge the two undos.
+     */
+    undoAddTimed: function(self, action, timeout) {
+        var now = +new Date();
+        var diff = now - self.lastUndoAdded.time;
+        if (action === self.lastUndoAdded.action && diff <= timeout) {
+            console.log("Merging timed undo. ({0}, {1}ms)".format(action, diff));
+            self.undoOverride(action);
+        } else {
+            console.log("Not merging timed undo. ({0}, {1}ms)".format(action, diff));
+            self.undoAdd(action);
+        }
     },
 
     undoOverride: function(self, action) {
         self.action = action;
+        self.lastUndoAdded = {'time': +new Date(), 'action': action};
         var text = self.serialize(false);
         self.undoLog[self.curUndo] = text;
         self.replayAdd(action);
@@ -385,6 +403,7 @@ var Board = Class.extend({
 
     undo: function(self) {
         self.curUndo--;
+        self.lastUndoAdded = {};
         if (self.curUndo < 0) {
             self.curUndo = 0;
         }
@@ -394,6 +413,7 @@ var Board = Class.extend({
 
     redo: function(self) {
         self.curUndo++;
+        self.lastUndoAdded = {};
         if (self.curUndo > (self.undoLog.length-1)) {
             self.curUndo = self.undoLog.length-1;
         }
