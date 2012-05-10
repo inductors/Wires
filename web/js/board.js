@@ -78,7 +78,7 @@ var Board = Class.extend({
         ]
 
         // initialize the board state for future undos.
-        self.undoAdd();
+        self.undoAdd('initial');
     },
 
     redraw: function(self) {

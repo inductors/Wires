@@ -527,7 +527,7 @@ var SeriesReduction = Reduction.extend({
                 }
             }
             self.prettify_resistor(r);
-            self.board.undoAdd();
+            self.board.undoAdd('series');
             return true;
         } else {
             return false;
@@ -610,7 +610,7 @@ var ParallelReduction = Reduction.extend({
                 }
             }
             self.prettify_resistor(r);
-            self.board.undoAdd();
+            self.board.undoAdd('parallel');
             return true;
         } else {
             return false;
@@ -669,7 +669,7 @@ var RemoveReduction = Reduction.extend({
                     resistors[i].remove();
                 }
             }
-            self.board.undoAdd();
+            self.board.undoAdd('remove');
             return true;
         } else {
             return false;
@@ -738,7 +738,7 @@ var DeltaWyeReduction = Reduction.extend({
             resistors[2].resistance = corn3_res;
 
             self.prettify_wye(resistors);
-            self.board.undoAdd();
+            self.board.undoAdd('deltawye');
             return true;
         } else {
             return false;
@@ -848,7 +848,7 @@ var WyeDeltaReduction = Reduction.extend({
 
             self.prettify_delta(delta);
 
-            self.board.undoAdd();
+            self.board.undoAdd('wyedelta');
             return true;
         } else {
             return false;
@@ -933,7 +933,7 @@ var PrettifyReduction = Reduction.extend({
     reduce: function(self, resistors) {
         self._super(resistors);
         self.prettify_all();
-        self.board.undoAdd();
+        self.board.undoAdd('prettify');
     },
 });
 
