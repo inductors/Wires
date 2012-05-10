@@ -385,10 +385,8 @@ var Board = Class.extend({
         var now = +new Date();
         var diff = now - self.lastUndoAdded.time;
         if (action === self.lastUndoAdded.action && diff <= timeout) {
-            console.log("Merging timed undo. ({0}, {1}ms)".format(action, diff));
             self.undoOverride(action);
         } else {
-            console.log("Not merging timed undo. ({0}, {1}ms)".format(action, diff));
             self.undoAdd(action);
         }
     },
@@ -518,6 +516,14 @@ var ScreenObject = Class.extend({
         self.selected_color = null;
     },
 
+    draw: function(self) {
+        if (isNaN(self.x) || isNaN(self.y)) {
+            console.log("NaN position! reseting to 0, 0");
+            self.x = 0;
+            self.y = 0;
+        }
+    },
+
     _get_selected: function (self) {
         return self._selected;
     },
@@ -564,6 +570,7 @@ var Node = ScreenObject.extend({
     },
 
     draw: function(self) {
+        self._super();
         var ctx = self.board.ctx;
         ctx.save()
 
@@ -755,6 +762,9 @@ var ProtoWire = ScreenObject.extend({
         self.n1 = n1;
         self.n2 = n2;
         self.notes = [];
+        // Some things expect all screen objects to have this.
+        self.x = 0;
+        self.y = 0;
 
         if (board) {
             self.board.elements.push(self);
@@ -764,6 +774,7 @@ var ProtoWire = ScreenObject.extend({
     },
 
     draw: function(self) {
+        self._super();
         var ctx = self.board.ctx;
         ctx.save();
 
@@ -964,6 +975,7 @@ var ProtoResistor = ProtoWire.extend({
     },
 
     draw: function(self) {
+        self._super();
         var ctx = self.board.ctx;
         ctx.save();
         if (self.selected) {
