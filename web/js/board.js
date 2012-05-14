@@ -43,6 +43,7 @@ var Board = Class.extend({
 
         self.snap = true;
         self.snap_size = 20;
+        self.fuzzy_hit = 15;
 
         setInterval($.proxy(self.redraw, self), 33);
 
@@ -583,7 +584,7 @@ var Node = ScreenObject.extend({
     /* Check if a given point is within the bounds of self node. */
     hit_test: function(self, x, y) {
         // Make clicking a bit easier.
-        var fuzzy_r = self.r + 5;
+        var fuzzy_r = self.r + self.board.fuzzy_hit;
 
         // Fast bounding box check
         if ((Math.abs(x - self.x) > fuzzy_r) || (Math.abs(y - self.y) > fuzzy_r)) {
@@ -798,7 +799,7 @@ var ProtoWire = ScreenObject.extend({
     },
 
     hit_test: function(self, x, y) {
-        var fuzzy_r = 7;
+        var fuzzy_r = self.board.fuzzy_hit;
         // Find bounding box.
         var left = self.n1.x;
         var right = self.n2.x;
