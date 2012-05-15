@@ -1164,7 +1164,7 @@ var Undo = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.elem = $('<div class="button" id="tool_undo">Undo</div>')
+        self.elem = $('<div class="button icon-undo" id="tool_undo">Undo</div>')
             .appendTo('#actions')
             .bind('click', function() {
                 console.log('Undoing.');
@@ -1179,7 +1179,7 @@ var Redo = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.elem = $('<div class="button">Redo</div>')
+        self.elem = $('<div class="button icon-redo">Redo</div>')
             .appendTo('#actions')
             .bind('click', function() {
                 console.log('Redoing.');
@@ -1194,7 +1194,7 @@ var Delete = Class.extend({
 
     init: function(self, board) {
         self.board = board;
-        self.elem = $('<div class="button" id="delete_button">Delete</div>')
+        self.elem = $('<div class="button icon-delete">Delete</div>')
             .appendTo('#actions')
             .bind('click', function() {
                 var selected = self.board.selected();

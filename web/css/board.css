@@ -40,6 +40,8 @@
     margin-right: 5px;
     height: 20px;
     cursor: pointer;
+    min-width: 75px;
+    text-align: center;
 }
 
 .button:hover {
@@ -56,12 +58,17 @@
 h3 { margin: 0px; }
 
 /* ICONS */
-.icon-resistor, .icon-wire, .icon-arrow, .icon-node {
+.icon-resistor, .icon-wire, .icon-arrow, .icon-node, .icon-undo, .icon-redo,
+.icon-delete {
     background-repeat: no-repeat;
     padding-left: 29px;
     background-position: 3px 3px;
+    min-width: 49px;
 }
 .icon-resistor { background-image: url('/img/icons/resistor.png'); }
 .icon-wire { background-image: url('/img/icons/wire.png'); }
 .icon-arrow { background-image: url('/img/icons/arrow.png'); }
 .icon-node { background-image: url('/img/icons/node.png'); }
+.icon-undo { background-image: url('/img/icons/undo.png'); }
+.icon-redo { background-image: url('/img/icons/redo.png'); }
+.icon-delete { background-image: url('/img/icons/delete.png'); }
