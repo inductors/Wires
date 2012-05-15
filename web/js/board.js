@@ -1,5 +1,5 @@
 /* Main */
-$(function() {
+$(function main() {
     var b = new Board();
 
     var t = new MoveTool(b);
