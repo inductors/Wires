@@ -13,6 +13,10 @@ $(function main() {
     new Undo(b);
     new Redo(b);
     new Delete(b);
+    new Record(b);
+    new Play(b);
+    new Back(b);
+    new Forward(b);
 
     new SeriesReduction(b);
     new ParallelReduction(b);
@@ -30,9 +34,11 @@ var Board = Class.extend({
     init: function(self) {
         self.nodes = [];
         self.elements = [];
+    self.sourcesink = new SourceSink(self);
         self.undoLog = [];
         self.curUndo = -1;
         self.replayLog = [];
+	self.replayPoint = 0;
         self.record = false;
         self.action = "Initial State";
 
@@ -405,6 +411,7 @@ var Board = Class.extend({
         self.lastUndoAdded = {};
         if (self.curUndo < 0) {
             self.curUndo = 0;
+	    return;
         }
         self.deserialize(self.undoLog[self.curUndo], false);
         self.replayAdd("Undoing");
@@ -415,6 +422,7 @@ var Board = Class.extend({
         self.lastUndoAdded = {};
         if (self.curUndo > (self.undoLog.length-1)) {
             self.curUndo = self.undoLog.length-1;
+	    return;
         }
         self.deserialize(self.undoLog[self.curUndo], false);
         self.replayAdd("Redoing");
@@ -437,9 +445,9 @@ var Board = Class.extend({
             self.elements[i].n1_id = self.elements[i].n1.id;
             self.elements[i].n2_id = self.elements[i].n2.id;
         }
-        var keys = ["id", "nodes", "elements", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes", "selected", "action"];
+        var keys = ["id", "nodes", "elements", "type", "x", "y", "n1_id", "n2_id", "resistance", "notes", "selected", "action", "sourcesink", "node_name"];
         if (full == true) {
-            keys = keys.concat(['undoLog', 'curUndo']);
+            keys = keys.concat(['replayLog']);
         }
         var text = JSON.stringify(self, keys);
         return text;
@@ -460,7 +468,10 @@ var Board = Class.extend({
         for (var i=0; i<boardData.nodes.length; i++) {
             new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
             self.nodes[i].notes = boardData.nodes[i].notes;
-        self.nodes[i].selected = boardData.nodes[i].selected;
+            self.nodes[i].selected = boardData.nodes[i].selected;
+	    self.nodes[i].sourcesink = boardData.nodes[i].sourcesink;
+	    self.nodes[i].set_sourcesink();
+	    self.nodes[i].node_name = boardData.nodes[i].node_name;
         }
         for (var i=0; i<boardData.elements.length; i++) {
             var n1 = self.nodes[boardData.elements[i].n1_id];
@@ -473,14 +484,15 @@ var Board = Class.extend({
                 new Resistor(self, n1, n2, r);
             }
             self.elements[i].notes = boardData.elements[i].notes;
-        self.elements[i].selected = boardData.elements[i].selected;
+            self.elements[i].selected = boardData.elements[i].selected;
         }
         if (full == true) {
             self.undoLog = []
-            for (var i=0; i<boardData.undoLog.length; i++) {
-                self.undoLog[i] = boardData.undoLog[i];
+	    self.curUndo = -1;
+            for (var i=0; i<boardData.replayLog.length; i++) {
+                self.replayLog[i] = boardData.replayLog[i];
             }
-            self.curUndo = boardData.curUndo;
+	    self.undoAdd('initial');
         }
         self.action = boardData.action;
     },
@@ -541,6 +553,72 @@ var ScreenObject = Class.extend({
     }
 });
 
+var SourceSink = Class.extend({
+    type: "sourcesink",
+
+    nit: function(self, board) {
+        self.board = board;
+        self.x = -1;
+        self.y = -1;
+        self.r = 0;
+        self.velocity = [0,0];
+        self.elements1 = [];
+        self.elements2 = [];
+    },
+
+    element_count: function(self) {
+        return self.elements1.length + self.elements2.length;
+    },
+
+    elements: function(self) {
+        return self.elements1.concat(self.elements2);
+    },
+
+    resistors: function(self) {
+        var i, j;
+        var elements = [];
+        var resistors = [];
+        var nodes = [self];
+
+        for (i = 0; i < nodes.length; i++) {
+            elements = nodes[i].elements();
+            for (j = 0; j < elements.length; j++) {
+                if (elements[j].type == "wire") {
+                    if (nodes.indexOf(elements[j].n1) == -1) {
+                        nodes.push(elements[j].n1);
+                    }
+                    if (nodes.indexOf(elements[j].n2) == -1) {
+                        nodes.push(elements[j].n2);
+                    }
+                } else if (elements[j].type == "resistor") {
+                    if (resistors.indexOf(elements[j]) == -1) {
+                        resistors.push(elements[j]);
+                    }
+                }
+            }
+        }
+        return resistors;
+    },
+});
+
+var SSResistor = Class.extend({
+    type: "resistor",
+
+    init: function(self, board, n1, n2) {
+        if (n1 === n2) {
+            throw "Cannot create wire where start and end node are the same";
+        }
+	self.board = board;
+        self.n1 = n1;
+        self.n2 = n2;
+	self.fake = true;
+    },
+    
+    remove: function(self) {
+    }
+
+});
+
 var Node = ScreenObject.extend({
     type: "node",
 
@@ -553,6 +631,8 @@ var Node = ScreenObject.extend({
         self.elements1 = [];
         self.elements2 = [];
         self.hover = false;
+	self.sourcesink = false;
+	self.node_name = "";
 
         self.board.nodes.push(self);
     },
@@ -560,16 +640,46 @@ var Node = ScreenObject.extend({
     _set_selected: function (self, val) {
         self._super(val);
         if (self.selected && !self.old_selected) {
-            self.widget_elem = $('<li><span style="color: #000;">Node</span></li>')
+            self.widget_elem = $('<li></li>')
                 .css({'color': colorToHex(self.selected_color)})
                 .appendTo('#selectedinfo');
+		$('<span style="color: #000;">Node</span> <input type="text" size="4" />'.format(self.node_name))
+                .bind('change', function (e) {
+                    self.node_name = $(this).val();
+                }).prop('value', self.node_name)
+                .appendTo(self.widget_elem);
+		$('<br><label style="color: #000">Source/Sink? </label> <input type="checkbox" />'.format(self.sourcesink))
+                .bind('change', function (e) {
+                    self.sourcesink = $(this).prop('checked');
+		    self.set_sourcesink();
+                }).prop('checked', self.sourcesink)
+                .appendTo(self.widget_elem)
         } else if (!self.selected && self.old_selected) {
             if (self.widget_elem) {
                 self.widget_elem.remove();
             }
         }
     },
-
+    
+    set_sourcesink: function (self) {
+	if (self.sourcesink) {
+	   var r = new SSResistor(self.board, self.board.sourcesink, self);
+	    self.elements1.push(r);
+	    self.elements2.push(r);
+	} else {
+	    for (i = 0; i < self.elements1.length; i++){
+		if (self.elements1[i].type == "resistor" && self.elements1[i].fake) {
+		    self.elements1.splice(i, 1);
+		}
+	    }
+	    for (i = 0; i < self.elements2.length; i++){
+		if (self.elements2[i].type == "resistor" && self.elements2[i].fake) {
+		    self.elements2.splice(i, 1);
+		}
+	    }
+	}
+    },
+    
     draw: function(self) {
         self._super();
         var ctx = self.board.ctx;
@@ -597,6 +707,14 @@ var Node = ScreenObject.extend({
             ctx.closePath();
             ctx.stroke();
         }
+	
+	ctx.fillStyle = 'rgb(0,0,0)';
+	var text_x = self.x;
+        var text_y = self.y;
+
+	var per_line = -10;
+	text_y += per_line;
+	ctx.fillText(self.node_name, text_x, text_y);
 
         ctx.restore();
     },
@@ -969,7 +1087,7 @@ var ProtoResistor = ProtoWire.extend({
     },
     _set_resistance: function (self, r) {
         self._resistance = r;
-        self.notes[0] = "{0}Ω".format(r);
+        self.notes[0] = "{0}â„¦".format(r);
         if (self.widget_elem) {
             self.widget_elem.children('input').val(self._resistance);
         }
@@ -1206,6 +1324,100 @@ var Delete = Class.extend({
     },
 });
 
+var Record = Class.extend({
+    type: "record",
+
+    init: function(self, board) {
+        self.board = board;
+	self.elem = $('<div class="button icon-record">Record</div>')
+	    .appendTo('#serial')
+	        .bind('click', function() {
+		   console.log('Recording.');
+		   self.board.record = true;
+		   self.board.replayLog = [];
+		   self.board.replayAdd();
+		   self.set();
+	       }
+	   );
+     },
+    set: function(self) {
+	if (self.board.record) {
+	    self.elem = $('.icon-record')
+	    .replaceWith('<div class="button icon-record">Stop</div>');
+	    self.elem = $('.icon-record').bind('click', function() {
+		   console.log('Stoping.');
+		   self.board.record = false;
+		   self.set()
+	       }
+	   );
+	} else {
+	    self.elem = $('.icon-record')
+	    .replaceWith('<div class="button icon-record">Record</div>')
+	    self.elem = $('.icon-record').bind('click', function() {
+		   console.log('Recording.');
+		   self.board.record = true;
+		   self.board.replayLog = [];
+		   self.board.replayAdd();
+		   self.set()
+	       }
+	   );
+	}
+    }
+});
+
+var Play = Class.extend({
+    type: "play",
+
+    init: function(self, board) {
+        self.board = board;
+        self.elem = $('<div class="button icon-play">Play</div>')
+            .appendTo('#serial')
+            .bind('click', function() {
+                console.log('Starting.');
+		self.board.replayPoint = 0;
+                self.board.deserialize(self.board.replayLog[self.board.replayPoint], false);
+            }
+        );
+    },
+});
+
+var Back = Class.extend({
+    type: "back",
+
+    init: function(self, board) {
+        self.board = board;
+        self.elem = $('<div class="button icon-back">Back</div>')
+            .appendTo('#serial')
+            .bind('click', function() {
+                console.log('Starting.');
+		self.board.replayPoint--;
+		if (self.board.replayPoint < 0) {
+		    self.board.replayPoint = 0;
+		}
+                self.board.deserialize(self.board.replayLog[self.board.replayPoint], false);
+            }
+        );
+    },
+});
+
+var Forward = Class.extend({
+    type: "forward",
+
+    init: function(self, board) {
+        self.board = board;
+        self.elem = $('<div class="button icon-forward">Forward</div>')
+            .appendTo('#serial')
+            .bind('click', function() {
+                console.log('Starting.');
+		self.board.replayPoint++;
+		if (self.board.replayPoint > self.board.replayLog.length) {
+		    self.board.replayPoint = self.board.replayLog.length;
+		}
+                self.board.deserialize(self.board.replayLog[self.board.replayPoint], false);
+            }
+        );
+    },
+});
 
 var Serializer = Class.extend({
     type: "serializer",
