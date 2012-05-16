@@ -1087,7 +1087,7 @@ var ProtoResistor = ProtoWire.extend({
     },
     _set_resistance: function (self, r) {
         self._resistance = r;
-        self.notes[0] = "{0}â„¦".format(r);
+        self.notes[0] = "{0}Ω".format(r);
         if (self.widget_elem) {
             self.widget_elem.children('input').val(self._resistance);
         }
