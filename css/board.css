@@ -1,0 +1,74 @@
+﻿#ui {
+  width: 1000px;
+}
+
+#board {
+    border: 1px solid grey;
+    background: #BBB url("/img/dot-grid.png");
+    position: relative;
+    z-index: 0;
+    float: left;
+    /* These are actually part of the html.
+    width: 800;
+    height: 600; */
+}
+
+#sidepanel {
+    float: left;
+    width: 180px;
+    height: 590px;
+    margin-left: 3px;
+    background-color: #BBB;
+    border: 1px solid grey;
+    padding: 5px;
+}
+
+#tools {
+}
+
+#tools h3 {
+    display: inline;
+}
+
+.button {
+    padding: 3px;
+    border-radius: 5px;
+    border: solid 1px #555;
+    background-color: #DDD;
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 20px;
+    cursor: pointer;
+    min-width: 75px;
+    text-align: center;
+}
+
+.button:hover {
+    background-color: #EEE;
+}
+.button:active {
+    background-color: #BBD;
+}
+
+.button.active {
+    background-color: #BBD;
+}
+
+h3 { margin: 0px; }
+
+/* ICONS */
+.icon-resistor, .icon-wire, .icon-arrow, .icon-node, .icon-undo, .icon-redo,
+.icon-delete {
+    background-repeat: no-repeat;
+    padding-left: 29px;
+    background-position: 3px 3px;
+    min-width: 49px;
+}
+.icon-resistor { background-image: url('/img/icons/resistor.png'); }
+.icon-wire { background-image: url('/img/icons/wire.png'); }
+.icon-arrow { background-image: url('/img/icons/arrow.png'); }
+.icon-node { background-image: url('/img/icons/node.png'); }
+.icon-undo { background-image: url('/img/icons/undo.png'); }
+.icon-redo { background-image: url('/img/icons/redo.png'); }
+.icon-delete { background-image: url('/img/icons/delete.png'); }
