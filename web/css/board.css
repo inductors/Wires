@@ -57,6 +57,17 @@
 
 h3 { margin: 0px; }
 
+.selection_widget {
+    padding-left: 13px;
+    position: relative;
+}
+
+.selection_widget svg {
+    position: absolute;
+    left: 0;
+    top: 5px;
+}
+
 /* ICONS */
 .icon-resistor, .icon-wire, .icon-arrow, .icon-node, .icon-undo, .icon-redo,
 .icon-delete {

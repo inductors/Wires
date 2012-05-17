@@ -550,7 +550,25 @@ var ScreenObject = Class.extend({
             self.board.return_color(self.selected_color);
             self.selected_color = null;
         }
-    }
+
+        if (self.selected && !self.old_selected) {
+            self.selection_widget();
+        } else if (!self.selected && self.old_selected) {
+            if (self.widget_elem) {
+                self.widget_elem.remove();
+            }
+        }
+    },
+
+    selection_widget: function(self) {
+        self.widget_elem = $('<div class="selection_widget" />')
+            .appendTo('#selectedinfo');
+
+        $('<svg width="10" height="10">' +
+            '<ellipse cx="5" cy="5" rx="5" ry="5" fill="{0}" /></svg>'
+            .format(colorToHex(self.selected_color)))
+            .appendTo(self.widget_elem);
+    },
 });
 
 var SourceSink = Class.extend({
@@ -635,55 +653,54 @@ var Node = ScreenObject.extend({
         self.elements1 = [];
         self.elements2 = [];
         self.hover = false;
-	self.sourcesink = false;
-	self.node_name = "";
+        self.sourcesink = false;
+        self.node_name = "";
 
         self.board.nodes.push(self);
     },
 
-    _set_selected: function (self, val) {
-        self._super(val);
-        if (self.selected && !self.old_selected) {
-            self.widget_elem = $('<li></li>')
-                .css({'color': colorToHex(self.selected_color)})
-                .appendTo('#selectedinfo');
-		$('<span style="color: #000;">Node</span> <input type="text" size="4" />'.format(self.node_name))
-                .bind('change', function (e) {
-                    self.node_name = $(this).val();
-                }).prop('value', self.node_name)
-                .appendTo(self.widget_elem);
-		$('<br><label style="color: #000">Source/Sink? </label> <input type="checkbox" />'.format(self.sourcesink))
-                .bind('change', function (e) {
-                    self.sourcesink = $(this).prop('checked');
-		    self.set_sourcesink();
-                }).prop('checked', self.sourcesink)
-                .appendTo(self.widget_elem)
-        } else if (!self.selected && self.old_selected) {
-            if (self.widget_elem) {
-                self.widget_elem.remove();
-            }
-        }
+    selection_widget: function(self) {
+        self._super();
+        $('<span>Node</span>').appendTo(self.widget_elem);
+
+        $('<input type="text" size="4"/>')
+            .bind('change', function (e) {
+                self.node_name = $(this).val();
+                self.board.undoAddTimed('node_ui', 5000);
+            })
+            .prop('value', self.node_name)
+            .appendTo(self.widget_elem);
+
+        $('<br><label>Source/Sink?</label>' +
+            '<input type="checkbox" />'.format(self.sourcesink))
+            .bind('change', function (e) {
+                self.sourcesink = $(this).prop('checked');
+                self.set_sourcesink();
+                self.board.undoAddTimed('node_ui', 5000);
+            })
+            .prop('checked', self.sourcesink)
+            .appendTo(self.widget_elem);
     },
-    
+
     set_sourcesink: function (self) {
-	if (self.sourcesink) {
-	    var r = new SSResistor(self.board, self.board.sourcesink, self);
-	    self.elements1.push(r);
-	    self.elements2.push(r);
-	    self.r = 7;	
-	} else {
-	    for (i = 0; i < self.elements1.length; i++){
-		if (self.elements1[i].type == "resistor" && self.elements1[i].fake) {
-		    self.elements1.splice(i, 1);
-		}
-	    }
-	    for (i = 0; i < self.elements2.length; i++){
-		if (self.elements2[i].type == "resistor" && self.elements2[i].fake) {
-		    self.elements2.splice(i, 1);
-		}
-	    }
-	    self.r = 5;
-	}
+        if (self.sourcesink) {
+            var r = new SSResistor(self.board, self.board.sourcesink, self);
+            self.elements1.push(r);
+            self.elements2.push(r);
+            self.r = 7;
+        } else {
+            for (i = 0; i < self.elements1.length; i++){
+                if (self.elements1[i].type == "resistor" && self.elements1[i].fake) {
+                    self.elements1.splice(i, 1);
+                }
+            }
+            for (i = 0; i < self.elements2.length; i++){
+                if (self.elements2[i].type == "resistor" && self.elements2[i].fake) {
+                    self.elements2.splice(i, 1);
+                }
+            }
+            self.r = 5;
+        }
     },
     
     draw: function(self) {
@@ -1051,17 +1068,9 @@ var Wire = ProtoWire.extend({
         n2.elements2.push(self);
     },
 
-    _set_selected: function (self, val) {
-        self._super(val);
-        if (self.selected && !self.old_selected) {
-            self.widget_elem = $('<li><span style="color: #000;">Wire</span></li>')
-                .css({'color': colorToHex(self.selected_color)})
-                .appendTo('#selectedinfo');
-        } else if (!self.selected && self.old_selected) {
-            if (self.widget_elem) {
-                self.widget_elem.remove();
-            }
-        }
+    selection_widget: function(self) {
+        self._super();
+        $('<span>Wire</span>').appendTo(self.widget_elem);
     },
 
     remove: function(self) {
@@ -1177,25 +1186,16 @@ var Resistor = ProtoResistor.extend({
         n2.elements2.push(self);
     },
 
-    _set_selected: function (self, val) {
-        self._super(val);
-        if (self.selected && !self.old_selected) {
-            self.widget_elem = $('<li></li>')
-                .css({'color': colorToHex(self.selected_color)})
-                .appendTo('#selectedinfo');
-            $('<label style="color: #000">Resistance</label> <input type="text" value="{0}" size="1" />'.format(self.resistance))
-                .bind('change', function (e) {
-                    self.resistance = parseFloat($(this).val());
-                })
-                .appendTo(self.widget_elem)
-
-        } else if (!self.selected && self.old_selected) {
-            if (self.widget_elem) {
-                self.widget_elem.remove();
-            }
-        }
+    selection_widget: function(self) {
+        self._super();
+        $('<span>Resistor </span>').appendTo(self.widget_elem);
+        $('<label>R=</label> <input type="text" value="{0}" size="1" />'.format(self.resistance))
+            .bind('change', function (e) {
+                self.resistance = parseFloat($(this).val());
+                self.board.undoAddTimed('resistor_ui', 5000);
+            })
+            .appendTo(self.widget_elem)
     },
-
 
     dragstart: function(self, e, target) {
         if (target) {
