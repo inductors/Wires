@@ -428,7 +428,7 @@ var Reduction = Class.extend({
                 force = [0,0];
 
                 for (j = 0; j < nodes.length; j++) {
-                    if (! (nodes[j] === n)) {
+                    if ((! (nodes[j] === n)) && (! nodes[j].sourcesink)) {
                         force = self.vector_sum(force, n.coulomb(nodes[j]));
                     }
                 }
