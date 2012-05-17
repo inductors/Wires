@@ -405,22 +405,7 @@ var Reduction = Class.extend({
     },
 
     prettify_all: function(self) {
-        var i; // iterator
-        var nodes = []; // node array
-        var resistors = []; // resistor array
-
-        nodes = self.board.nodes;
-        for (i = 0; i < nodes.length; i++) {
-            self.prettify_node(nodes[i]);
-        }
-
-        resistors = self.board.resistors();
-        for (i = 0; i < resistors.length; i++) {
-            self.prettify_resistor(resistors[i]);
-        }
-
         self.prettify_force_tick();
-
         return true;
     },
 
