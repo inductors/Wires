@@ -34,11 +34,11 @@ var Board = Class.extend({
     init: function(self) {
         self.nodes = [];
         self.elements = [];
-    self.sourcesink = new SourceSink(self);
+        self.sourcesink = new SourceSink(self);
         self.undoLog = [];
         self.curUndo = -1;
         self.replayLog = [];
-	self.replayPoint = 0;
+        self.replayPoint = 0;
         self.record = false;
         self.action = "Initial State";
 
@@ -411,7 +411,7 @@ var Board = Class.extend({
         self.lastUndoAdded = {};
         if (self.curUndo < 0) {
             self.curUndo = 0;
-	    return;
+            return;
         }
         self.deserialize(self.undoLog[self.curUndo], false);
         self.replayAdd("Undoing");
@@ -422,7 +422,7 @@ var Board = Class.extend({
         self.lastUndoAdded = {};
         if (self.curUndo > (self.undoLog.length-1)) {
             self.curUndo = self.undoLog.length-1;
-	    return;
+            return;
         }
         self.deserialize(self.undoLog[self.curUndo], false);
         self.replayAdd("Redoing");
@@ -469,9 +469,9 @@ var Board = Class.extend({
             new Node(self, boardData.nodes[i].x, boardData.nodes[i].y);
             self.nodes[i].notes = boardData.nodes[i].notes;
             self.nodes[i].selected = boardData.nodes[i].selected;
-	    self.nodes[i].sourcesink = boardData.nodes[i].sourcesink;
-	    self.nodes[i].set_sourcesink();
-	    self.nodes[i].node_name = boardData.nodes[i].node_name;
+            self.nodes[i].sourcesink = boardData.nodes[i].sourcesink;
+            self.nodes[i].set_sourcesink();
+            self.nodes[i].node_name = boardData.nodes[i].node_name;
         }
         for (var i=0; i<boardData.elements.length; i++) {
             var n1 = self.nodes[boardData.elements[i].n1_id];
@@ -615,7 +615,11 @@ var SSResistor = Class.extend({
     },
     
     remove: function(self) {
-    }
+    },
+    
+    nodes: function(self) {
+        return [];
+    },
 
 });
 
@@ -663,9 +667,10 @@ var Node = ScreenObject.extend({
     
     set_sourcesink: function (self) {
 	if (self.sourcesink) {
-	   var r = new SSResistor(self.board, self.board.sourcesink, self);
+	    var r = new SSResistor(self.board, self.board.sourcesink, self);
 	    self.elements1.push(r);
 	    self.elements2.push(r);
+	    self.r = 7;	
 	} else {
 	    for (i = 0; i < self.elements1.length; i++){
 		if (self.elements1[i].type == "resistor" && self.elements1[i].fake) {
@@ -677,6 +682,7 @@ var Node = ScreenObject.extend({
 		    self.elements2.splice(i, 1);
 		}
 	    }
+	    self.r = 5;
 	}
     },
     
@@ -691,9 +697,17 @@ var Node = ScreenObject.extend({
         ctx.closePath();
 
         if (self.hover) {
-            ctx.fillStyle = 'rgb(196, 196, 196)';
+            if (self.sourcesink) {
+                ctx.fillStyle = 'rgb(176, 196, 222)';
+            } else {
+                ctx.fillStyle = 'rgb(196, 196, 196)';
+            }
         } else {
-            ctx.fillStyle = 'rgb(128, 128, 128)';
+            if (self.sourcesink) {
+                ctx.fillStyle = 'rgb(70, 130, 180)';
+            } else {
+                ctx.fillStyle = 'rgb(128, 128, 128)';
+            }
         }
 
         ctx.fill();
@@ -1087,7 +1101,7 @@ var ProtoResistor = ProtoWire.extend({
     },
     _set_resistance: function (self, r) {
         self._resistance = r;
-        self.notes[0] = "{0}Ω".format(r);
+        self.notes[0] = "{0}â„¦".format(r);
         if (self.widget_elem) {
             self.widget_elem.children('input').val(self._resistance);
         }
@@ -1275,7 +1289,6 @@ var Resistor = ProtoResistor.extend({
         return null;
     },
 });
-
 
 var Undo = Class.extend({
     type: "undo",
