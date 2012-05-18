@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <parameter name="ApplicationServices-Web.config Connection String" description="ApplicationServices Connection String used in web.config by the application to access the database." defaultvalue="data source=.\SQLEXPRESS;Integrated Security=SSPI;AttachDBFilename=|DataDirectory|\aspnetdb.mdf;User Instance=true" tags="SqlConnectionString">
+    <parameterEntry kind="XmlFile" scope="C:\\Users\\Daniel\ Evans\\Documents\\Visual\ Studio\ 2010\\Projects\\WebApplication1\\WebApplication1\\obj\\Debug\\Package\\PackageTmp\\Web\.config$" match="/configuration/connectionStrings/add[@name='ApplicationServices']/@connectionString" />
+  </parameter>
+  <parameter name="tutorDBConnectionString-Web.config Connection String" description="tutorDBConnectionString Connection String used in web.config by the application to access the database." defaultvalue="Data Source=.\SQLEXPRESS;AttachDbFilename=&quot;C:\Users\Daniel Evans\Documents\tutorDB.mdf&quot;;Integrated Security=True;Connect Timeout=30;User Instance=True" tags="SqlConnectionString">
+    <parameterEntry kind="XmlFile" scope="C:\\Users\\Daniel\ Evans\\Documents\\Visual\ Studio\ 2010\\Projects\\WebApplication1\\WebApplication1\\obj\\Debug\\Package\\PackageTmp\\Web\.config$" match="/configuration/connectionStrings/add[@name='tutorDBConnectionString']/@connectionString" />
+  </parameter>
+  <parameter name="DB_42065_tutordbConnectionString-Web.config Connection String" description="DB_42065_tutordbConnectionString Connection String used in web.config by the application to access the database." defaultvalue="Data Source=s07.winhost.com;Initial Catalog=DB_42065_tutordb;User ID=DB_42065_tutordb_user;Password=tutor" tags="SqlConnectionString">
+    <parameterEntry kind="XmlFile" scope="C:\\Users\\Daniel\ Evans\\Documents\\Visual\ Studio\ 2010\\Projects\\WebApplication1\\WebApplication1\\obj\\Debug\\Package\\PackageTmp\\Web\.config$" match="/configuration/connectionStrings/add[@name='DB_42065_tutordbConnectionString']/@connectionString" />
+  </parameter>
+</parameters>

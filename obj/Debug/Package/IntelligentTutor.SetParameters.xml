@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <setParameter name="IIS Web Application Name" value="Default Web Site/IntelligentTutor_deploy" />
+  <setParameter name="ApplicationServices-Deployment Connection String" value="" />
+  <setParameter name="tutorDBConnectionString-Deployment Connection String" value="" />
+  <setParameter name="ApplicationServices-Web.config Connection String" value="data source=.\SQLEXPRESS;Integrated Security=SSPI;AttachDBFilename=|DataDirectory|\aspnetdb.mdf;User Instance=true" />
+  <setParameter name="tutorDBConnectionString-Web.config Connection String" value="Data Source=.\SQLEXPRESS;AttachDbFilename=&quot;C:\Users\Daniel Evans\Documents\tutorDB.mdf&quot;;Integrated Security=True;Connect Timeout=30;User Instance=True" />
+  <setParameter name="DB_42065_tutordbConnectionString-Web.config Connection String" value="Data Source=s07.winhost.com;Initial Catalog=DB_42065_tutordb;User ID=DB_42065_tutordb_user;Password=tutor" />
+</parameters>
