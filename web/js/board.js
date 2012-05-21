@@ -6,6 +6,7 @@ $(function main() {
     new NodeTool(b);
     new WireTool(b);
     new ResistorTool(b);
+    new OmniTool(b);
 
     new Serializer(b);
     new Deserializer(b);
@@ -537,6 +538,16 @@ var ScreenObject = Class.extend({
         }
     },
 
+    hit_test: function(self, x, y) {
+        return false;
+    },
+
+    distance: functin(self, x, y) {
+        var dx = self.x - x;
+        var dy = self.y - y;
+        return Math.sqrt(dx * dx + dy * dy);
+    },
+
     _get_selected: function (self) {
         return self._selected;
     },
@@ -702,7 +713,7 @@ var Node = ScreenObject.extend({
             self.r = 5;
         }
     },
-    
+
     draw: function(self) {
         self._super();
         var ctx = self.board.ctx;
@@ -763,6 +774,10 @@ var Node = ScreenObject.extend({
         var d_sq = Math.pow(x - self.x, 2) + Math.pow(y - self.y, 2);
         return d_sq < Math.pow(fuzzy_r, 2);
     },
+
+    distance: function(self, x, y) {
+        return self._super(x, y) - self.r;
+    }
 
     element_count: function(self) {
         return self.elements1.length + self.elements2.length;
@@ -1011,6 +1026,46 @@ var ProtoWire = ScreenObject.extend({
         distance = Math.abs(distance + 3);
 
         return distance < fuzzy_r;
+    },
+
+    distance: function(self, x, y) {
+        // Find bounding box.
+        var left = self.n1.x;
+        var right = self.n2.x;
+        var top = self.n1.y;
+        var bottom = self.n2.y;
+        if (left > right) {
+            var tmp = right;
+            right = left;
+            left = tmp;
+        }
+        if (top > bottom) {
+            var tmp = top;
+            top = bottom;
+            bottom = tmp;
+        }
+
+        // outside bounds?
+        if (x > right || x < left || y > bottom || y < top) {
+            var d1 = self.n1.distance(x, y);
+            var d2 = self.n2.distance(x, y);
+            return d1 < d2 ? d1 : d2;
+        }
+
+        // Now do an actually line collision check.
+        // This magic geometry is from http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
+        // length
+        var lx = self.n2.x - self.n1.x;
+        var ly = self.n2.y - self.n1.y;
+        // dist from n1
+        var rx = self.n1.x - x;
+        var ry = self.n1.y - y;
+
+        var distance = ((lx * ry) - (rx * ly)) / Math.sqrt(lx * lx + ly * ly);
+        // This makes it work, for some reason. Wat.
+        distance = Math.abs(distance + 3);
+
+        return distance;
     },
 
     nodes: function(self) {
