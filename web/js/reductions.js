@@ -13,7 +13,7 @@ var Reduction = Class.extend({
         self.elem = $('<div class="button" id="' + self.type + '">' + self.name + '</div>')
             .appendTo('#reductions')
             .bind('click', function() {
-                self.reduce(self.board.selected_resistors());
+                self.signal(self.reduce(self.board.selected_resistors()));
             });
     },
     
@@ -46,6 +46,27 @@ var Reduction = Class.extend({
     */
     reduce: function(self, resistors) {
         console.log(self.name.concat(" reduce"));
+    },
+    
+    /*
+    @args:
+        success: a boolean indicating a reduction was a sucess or failure 
+    */
+    signal: function(self, success) {
+        console.log(self.name.concat(" signal"));
+        if (success == true){
+            for (var i = 0; i < 2; i++){
+                setTimeout(function(){
+                    $('#' + self.type).toggleClass("success");
+                }, i*800);
+            }
+        } else {
+            for (var i = 0; i < 6; i++){
+                setTimeout(function(){
+                    $('#' + self.type).toggleClass("fail");
+                }, i*300);
+            }
+        }
     },
 
     /*
@@ -534,6 +555,10 @@ var SeriesReduction = Reduction.extend({
         for (i = 0; i < resistors.length; i++) {
             uncleared.push(resistors[i]);
         }
+	
+        if (uncleared.length == 0) {
+            return undefined;
+        }
 
         nodes = uncleared.pop().nodes();
 
@@ -610,6 +635,10 @@ var ParallelReduction = Reduction.extend({
         var r; // resistor
 
         self._super(resistors);
+	    
+        if (resistors.length == 0) {
+            return undefined;
+        }
 
         nodes = resistors[0].nodes();
         n = nodes[0];
@@ -886,6 +915,16 @@ var PrettifyReduction = Reduction.extend({
 
     init: function(self, board) {
         self._super(board);
+    },
+    
+    //  @always:
+    //      add a button to the reduction section for the given type of reduction
+    make_elem: function(self) {
+        self.elem = $('<div class="button" id="' + self.type + '">' + self.name + '</div>')
+            .appendTo('#reductions')
+            .bind('click', function() {
+                self.reduce(self.board.selected_resistors());
+            });
     },
 
     /*
